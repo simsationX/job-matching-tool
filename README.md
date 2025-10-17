@@ -86,27 +86,27 @@ So it won't show in the list view anymore, but it is still in the database, so t
 If you want to calculate matches of one specific candidate (in the case you change the candidate), then you have to delete all his matches by hand 
 and run `bin/console app:candidate-job-match new`. Or you can delete the candidate and create the candidate new and run `bin/console app:candidate-job-match new`.
 
-### 5. Matching of eolocation
+### 5. Matching of geolocation
 
-When importing jobs or creating/updating jobs in the dashboard, the location of the job will be matched with the geo location.
+When importing jobs or creating/updating jobs in the dashboard, the location of the job will be matched with the geolocation.
 
 The matching logic works with these formats:
 
-Berlin
-38126 Braunschweig
-63110 Rodgau Hessen
-Hybrides Arbeiten in 76767 Hagenbach
-Hybrides Arbeiten in Berlin
-10179 Berlin Berlin
-Darmstadt, Hesse, Germany
-Darmstadt, München, Frankfurt
-45481 Mülheim an der Ruhr Nordrhein-Westfalen
-Mülheim an der Ruhr Nordrhein-Westfalen
+Berlin  
+38126 Braunschweig  
+63110 Rodgau Hessen  
+Hybrides Arbeiten in 76767 Hagenbach  
+Hybrides Arbeiten in Berlin  
+10179 Berlin Berlin  
+Darmstadt, Hesse, Germany  
+Darmstadt, München, Frankfurt  
+45481 Mülheim an der Ruhr Nordrhein-Westfalen  
+Mülheim an der Ruhr Nordrhein-Westfalen  
 Duisburg, Dortmund, Unna, Oberhausen, Essen, Bottrop, Mülheim, Herne, Bochum, Ennepe-Ruhr-Kreis, Hamm, Wesel, Gelsenkirchen, Hagen, Recklinghausen
-Düsseldorf, Nordrhein-Westfalen | Dresden, Sachsen | Bad Hersfeld, Hessen
-Deutschland
-Germany
-Allemagne
+Düsseldorf, Nordrhein-Westfalen | Dresden, Sachsen | Bad Hersfeld, Hessen  
+Deutschland  
+Germany  
+Allemagne  
 
 The matching algorithm splits all "," or "|" in the location field.
 For each split it will lookup for the geolocation.
@@ -115,13 +115,13 @@ If not up to 4 words are used to match the geolocation by place. If multiple pla
 
 Following entries won't work:
 
-Hybrides Arbeiten in Nordrhein-Westfalen
-Bayern
-Thüringen
-Hybrides Arbeiten in Bayern
-Santiago de Querétaro
-Tyskland
-Frankfurt
+Hybrides Arbeiten in Nordrhein-Westfalen  
+Bayern  
+Thüringen  
+Hybrides Arbeiten in Bayern  
+Santiago de Querétaro  
+Tyskland  
+Frankfurt  
 
 Bundesländer can't be resolved.
 Frankfurt should be "Frankfurt am Main" or "Frankfurt (Oder)".
