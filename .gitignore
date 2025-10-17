@@ -1,0 +1,6 @@
+/vendor/
+/var/
+/node_modules/
+/.env.local
+/.idea
+/.vscode

@@ -1,0 +1,12 @@
+{% if ea.entity.instance is defined and ea.entity.instance %}
+    {% set candidate = ea.entity.instance.candidate ?? null %}
+    {% if candidate %}
+        {% set keywords = candidate_keywords(candidate) %}
+    {% else %}
+        {% set keywords = [] %}
+    {% endif %}
+{% endif %}
+
+{% set text = field.value ?? '' %}
+
+<div style="white-space: pre-wrap;">{{ text | highlight_keywords(keywords) | raw }}</div>

@@ -1,0 +1,17 @@
+{% if field.value|length %}
+    <ul>
+        {% for match in field.value %}
+            <li>
+                <a href="{{  ea_url()
+                  .setController('App\\Controller\\CandidateJobMatchCrudController')
+                  .setAction('detail')
+                  .setEntityId(match.id)
+                }}">
+                    {{ match.company }} – {{ match.position }} – {{ match.location }} – {{ match.score|number_format(2, '.', '') }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <span>Keine Matches</span>
+{% endif %}

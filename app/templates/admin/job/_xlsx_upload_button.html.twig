@@ -1,0 +1,12 @@
+<form method="POST"
+      action="{{ ea_url()
+          .setController('App\\Controller\\JobCrudController')
+          .setAction('xlsxUpload')
+      }}"
+      enctype="multipart/form-data" class="d-inline-block ms-2"
+      style="display:inline;">
+    <label class="btn btn-primary mb-0" for="job-xlsx-upload">
+        <i class="fa fa-file-excel"></i> XLSX Import
+    </label>
+    <input type="file" name="xlsx" id="job-xlsx-upload" class="d-none" accept=".xlsx,.xls" onchange="this.form.submit()">
+</form>

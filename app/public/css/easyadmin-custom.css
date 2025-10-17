@@ -1,0 +1,189 @@
+:root {
+    --bh-dark-blue: #073b6f;   /* dark blue sidebar */
+    --bh-red:      #c62828;    /* active / hover red */
+    --bh-white:    #ffffff;
+    --bh-muted:    #9aa3b2;
+    --button-primary-bg: #c62828;
+    --bs-btn-hover-bg: #a51f1f;
+    --user-name-color: #ffffff;
+    --dropdown-settings-icon-color: #ffffff;
+    --content-search-icon-color: #ffffff;
+    --content-search-reset-button-bg: #ffffff;
+    --pagination-active-bg: #c62828;
+    --pagination-hover-border-color: #c62828;
+}
+
+/* --- Base font size (increase for readability) --- */
+html, body {
+    font-size: 15px; /* change to 16px if you want even larger text */
+    line-height: 1.45;
+    color: #222;
+}
+
+/* Apply to common EasyAdmin containers too (extra specificity) */
+body .ea, .easy-admin, .ea-main, .ea-content, .page {
+    font-size: 15px;
+}
+
+.main-header {
+    margin-bottom: 30px;
+}
+
+nav.pager {
+    background: var(--bh-white) !important;
+}
+
+nav {
+    background: var(--bh-dark-blue);
+}
+
+/* --- Sidebar / menu styling --- */
+/* target multiple possible EasyAdmin sidebar class names */
+aside, .ea-sidebar, .sidebar, .sidebar-wrapper {
+    background-color: var(--bh-dark-blue) !important;
+    color: var(--bh-white) !important;
+    border: none !important;
+}
+
+/* Menu links: white by default */
+aside .menu a,
+.ea-sidebar .menu a,
+.sidebar a,
+.menu-link,
+.sidebar .nav-link,
+.ea-sidebar .nav-link {
+    color: var(--bh-white) !important;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* Hover and focus: red accent */
+aside .menu a:hover,
+.ea-sidebar .menu a:hover,
+.sidebar a:hover,
+.menu-link:hover,
+.sidebar .nav-link:hover,
+.ea-sidebar .nav-link:hover {
+    color: var(--bh-red) !important;
+    background: rgba(198,40,40,0.06); /* subtle background on hover */
+}
+
+/* Active menu item */
+aside .menu .active > a,
+.ea-sidebar .menu .active > a,
+.sidebar .nav .active > a {
+    color: var(--bh-red) !important;
+    background: rgba(198,40,40,0.08) !important;
+}
+
+/* Make menu icons match link color */
+aside .menu svg,
+.ea-sidebar .menu svg,
+.sidebar svg {
+    fill: var(--bh-white);
+}
+
+/* If menu icons need color change on hover/active */
+aside .menu a:hover svg,
+.ea-sidebar .menu a:hover svg,
+aside .menu .active svg {
+    fill: var(--bh-red) !important;
+}
+
+/* --- Topbar / header adjustments --- */
+.header, .topbar, .ea-topbar, header {
+    background: #ffffff;
+    border-bottom: 1px solid #e9eef5;
+}
+
+/* Navbar brand (logo) */
+.navbar-brand img,
+.brand img {
+    height: 44px;
+    width: auto;
+    vertical-align: middle;
+}
+
+/* --- Buttons and accents --- */
+.btn-primary,
+.actions .btn-primary,
+.button-primary,
+.btn.btn-primary {
+    background-color: var(--bh-red) !important;
+    border-color: var(--bh-red) !important;
+    color: var(--bh-white) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary:focus,
+.actions .btn-primary:hover {
+    background: #a51f1f !important; /* slightly darker red */
+    background-color: #a51f1f !important; /* slightly darker red */
+    border-color: #a51f1f !important;
+}
+
+/* Links in content should stay readable (dark text), but hovered links use brand red */
+.ea-content a, .content a, .ea-crud a {
+    color: #0b66a3; /* content link color (blue-ish) */
+}
+.ea-content a:hover, .content a:hover {
+    color: var(--bh-red);
+}
+
+/* subtle hover for rows */
+.table tbody tr:hover {
+    background-color: rgba(198,40,40,0.03);
+}
+
+/* adjust small text sizes (e.g. meta) to be readable */
+small, .small, .ea-small {
+    font-size: 0.92em;
+}
+
+/* --- Form inputs --- */
+.form-control, input[type="text"], textarea, select {
+    border-radius: 4px;
+    border: 1px solid #d8dee6;
+    padding: 8px 10px;
+    font-size: 15px;
+}
+
+/* --- responsive tweaks --- */
+@media (max-width: 992px) {
+    aside, .ea-sidebar {
+        font-size: 15px;
+    }
+}
+
+#main-menu .menu .menu-item.active {
+    background: none;
+}
+
+#main-menu .menu .menu-icon {
+    color: var(--bh-white) !important;
+}
+
+#main-menu .menu .menu-item.active:not(.expanded) .menu-icon {
+    color: var(--bh-red) !important;
+}
+
+.btn-primary:hover,
+.actions .btn-primary:hover {
+    background-color: #a51f1f !important; /* slightly darker red */
+    border-color: #a51f1f !important;
+}
+
+.action-downloadCsv {
+    background: var(--bh-red) !important;
+    color: #ffffff !important;
+}
+
+.action-downloadCsv:hover {
+    background-color: #a51f1f !important; /* slightly darker red */
+    border-color: #a51f1f !important;
+}
+
+.action-downloadCsv i {
+    color:  #ffffff !important;
+}

@@ -1,0 +1,15 @@
+<form
+    action="{{ ea_url()
+        .setController('App\\Controller\\CandidateCrudController')
+        .setAction('csvImport')
+    }}"
+    method="post"
+    enctype="multipart/form-data"
+    style="display:inline;"
+>
+    <label class="btn btn-primary mb-0">
+        <i class="fa fa-file-csv"></i>
+        <span>CSV Import</span>
+        <input type="file" name="csv" accept=".csv" style="display:none;" onchange="this.form.submit()">
+    </label>
+</form>

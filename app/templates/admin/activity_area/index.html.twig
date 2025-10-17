@@ -1,0 +1,26 @@
+{% extends '@EasyAdmin/crud/index.html.twig' %}
+
+{% block content %}
+    {{ parent() }}
+
+{#    <script>#}
+{#        document.addEventListener('DOMContentLoaded', () => {#}
+{#            document.querySelectorAll('table tbody tr').forEach(row => {#}
+{#                // finde den Link zur Detail-Action in der Zeile#}
+{#                const detailLink = row.querySelector('a.action-detail');#}
+{#                if (!detailLink) return;#}
+
+{#                // alle Zellen außer der letzten (Actions) anklickbar machen#}
+{#                row.querySelectorAll('td:not(.actions)').forEach(cell => {#}
+{#                    cell.style.cursor = 'pointer';#}
+{#                    cell.addEventListener('click', e => {#}
+{#                        // wenn das Ziel selbst kein Link ist#}
+{#                        if (!e.target.closest('a')) {#}
+{#                            window.location.href = detailLink.href;#}
+{#                        }#}
+{#                    });#}
+{#                });#}
+{#            });#}
+{#        });#}
+{#    </script>#}
+{% endblock %}

@@ -1,0 +1,27 @@
+body.page-login {
+    background-color: #073b6f; /* dein Blau */
+}
+
+.logo-long {
+    margin-bottom: 30px;
+}
+
+.btn-primary {
+    background: #c62828; /* rot */
+    border-color: #c62828;
+}
+.btn-primary:hover, .btn-primary:active, .btn-primary:focus,
+.btn:not(:disabled):not(.disabled):active,
+.btn:not(:disabled):not(.disabled):focus, .btn:not(:disabled):not(.disabled):focus-visible, .btn:not(:disabled):not(.disabled):hover {
+    background: #a51f1f;
+    border-color: #a51f1f;
+}
+
+.btn:not(:disabled):not(.disabled):focus-visible:not(:active), .btn:not(:disabled):not(.disabled):focus:not(:active) {
+    outline: 2px solid #a51f1f;
+}
+
+button.btn-primary:disabled {
+    background: #a51f1f;
+    border-color: #a51f1f;
+}
