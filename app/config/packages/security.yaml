@@ -9,7 +9,7 @@ security:
             memory:
                 users:
                     admin:
-                        password: '$2y$13$SWswNXwdFSma8TiVWWIFy.RPSDvjJc4bzokVOh5zcb73jDJq5yH0S' # Passwort hash hier einfügen
+                        password: '%env(ADMIN_PASSWORD)%'
                         roles: [ 'ROLE_ADMIN' ]
     firewalls:
         dev:
@@ -35,16 +35,5 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        - { path: ^/$, roles: ROLE_ADMIN }
-when@test:
-    security:
-        password_hashers:
-            # By default, password hashers are resource intensive and take time. This is
-            # important to generate secure password hashes. In tests however, secure hashes
-            # are not important, waste resources and increase test times. The following
-            # reduces the work factor to the lowest possible values.
-            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
-                algorithm: auto
-                cost: 4 # Lowest possible value for bcrypt
-                time_cost: 3 # Lowest possible value for argon
-                memory_cost: 10 # Lowest possible value for argon
+        - { path: ^/login$, roles: PUBLIC_ACCESS }  # Login-Seite öffentlich
+        - { path: ^/, roles: ROLE_ADMIN }           # Alles andere nur für Admin

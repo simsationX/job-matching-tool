@@ -17,8 +17,7 @@ def main():
     filtered_job_ids_path = sys.argv[4]
 
     # Modell laden
-    model_path = os.path.join(os.environ.get('TRANSFORMERS_CACHE', '/opt/venv/transformers_cache'),
-                              'all-MiniLM-L6-v2')
+    model_path = os.path.join(os.environ.get('TRANSFORMERS_CACHE', '/opt/venv/transformers_cache'), 'all-MiniLM-L6-v2')
     model = SentenceTransformer(model_path)
 
     # FAISS Index laden

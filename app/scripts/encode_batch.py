@@ -13,7 +13,8 @@ faiss_index_file = sys.argv[2]
 job_ids_file = sys.argv[3]
 
 # Modell laden
-model = SentenceTransformer('all-MiniLM-L6-v2')
+model_path = os.path.join(os.environ.get('TRANSFORMERS_CACHE', '/opt/venv/transformers_cache'), 'all-MiniLM-L6-v2')
+model = SentenceTransformer(model_path)
 
 # Zielordner anlegen
 os.makedirs(os.path.dirname(faiss_index_file), exist_ok=True)
