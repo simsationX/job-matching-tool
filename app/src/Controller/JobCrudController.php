@@ -6,7 +6,6 @@ use App\Entity\Candidate;
 use App\Entity\CandidateJobMatch;
 use App\Entity\Job;
 use App\Repository\CandidateJobMatchRepository;
-use App\Repository\CandidateRepository;
 use App\Repository\JobRepository;
 use App\Service\JobLocationResolverService;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
@@ -19,7 +18,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
-use EasyCorp\Bundle\EasyAdminBundle\Form\Type\CrudAutocompleteType;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -33,12 +31,6 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class JobCrudController extends AbstractCrudController
 {
-    private const IGNORED_LOCATIONS = [
-        'deutschland',
-        'germany',
-        'allemagne',
-    ];
-
     public function __construct(private JobLocationResolverService $jobLocationResolverService) {
     }
 

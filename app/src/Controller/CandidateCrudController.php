@@ -56,6 +56,7 @@ class CandidateCrudController extends AbstractCrudController
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_INDEX, $csvImport)
+            ->add(Crud::PAGE_INDEX, $matchCandidate)
             ->add(Crud::PAGE_DETAIL, $matchCandidate)
             ->reorder(
                 Crud::PAGE_DETAIL,
