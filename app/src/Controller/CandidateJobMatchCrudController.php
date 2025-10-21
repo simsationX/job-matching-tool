@@ -208,9 +208,17 @@ class CandidateJobMatchCrudController extends AbstractCrudController
     private function runAsyncProcess(string $mode): void
     {
         $projectDir = $this->params->get('kernel.project_dir');
+        $tmpDir = sprintf('%s/var/tmp', $projectDir);
+
+        if (!is_dir($tmpDir)) {
+            if (!mkdir($tmpDir, 0777, true) && !is_dir($tmpDir)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $tmpDir));
+            }
+        }
+
         $consoleCommand = sprintf('%s/bin/console app:candidate-job-match %s', $projectDir, escapeshellarg($mode));
 
-        $pidFile = sprintf('%s/var/tmp/candidate-match.pid', $projectDir);
+        $pidFile = sprintf('%s/candidate-match.pid', $tmpDir);
 
         if (file_exists($pidFile)) {
             $pid = (int) file_get_contents($pidFile);
@@ -224,9 +232,9 @@ class CandidateJobMatchCrudController extends AbstractCrudController
         }
 
         $command = sprintf(
-            '%s > %s/var/tmp/candidate-match.log 2>&1 & echo $!',
+            '%s > %s/candidate-match.log 2>&1 & echo $!',
             $consoleCommand,
-            $projectDir
+            $tmpDir
         );
 
         $pid = (int) shell_exec($command);
