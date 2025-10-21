@@ -216,7 +216,7 @@ class CandidateJobMatchCrudController extends AbstractCrudController
             }
         }
 
-        $consoleCommand = sprintf('%s/bin/console app:candidate-job-match %s', $projectDir, escapeshellarg($mode));
+        $consoleCommand = sprintf('bash -c "source /opt/venv/bin/activate && %s/bin/console app:candidate-job-match %s"', $projectDir, escapeshellarg($mode));
 
         $pidFile = sprintf('%s/candidate-match.pid', $tmpDir);
 
