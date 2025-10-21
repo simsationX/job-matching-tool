@@ -174,16 +174,16 @@ small, .small, .ea-small {
     border-color: #a51f1f !important;
 }
 
-.action-downloadCsv {
+.action-matchCandidate, .action-matchNew, .action-matchAll, .action-downloadCsv {
     background: var(--bh-red) !important;
     color: #ffffff !important;
 }
 
-.action-downloadCsv:hover {
+.action-matchCandidate:hover, .action-matchNew:hover, .action-matchAll:hover, .action-downloadCsv:hover {
     background-color: #a51f1f !important; /* slightly darker red */
     border-color: #a51f1f !important;
 }
 
-.action-downloadCsv i {
+.action-matchCandidate i, .action-matchNew i, .action-matchAll i, .action-downloadCsv i {
     color:  #ffffff !important;
 }

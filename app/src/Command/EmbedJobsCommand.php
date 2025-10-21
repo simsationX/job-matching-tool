@@ -36,7 +36,7 @@ class EmbedJobsCommand extends Command
 
         if ($newJobsCount === 0) {
             $io->info('No new jobs. Stop embedding jobs.');
-            return Command::SUCCESS; // oder Command::FAILURE, wenn du das signalisieren willst
+            return Command::SUCCESS;
         }
 
         $io->info(sprintf('%d new jobs found', $newJobsCount));

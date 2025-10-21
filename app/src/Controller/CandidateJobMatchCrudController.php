@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\CandidateJobMatch;
 use App\Entity\Enum\CandidateJobMatchStatus;
+use App\Repository\CandidateJobMatchRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
@@ -21,12 +22,12 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\Process\Process;
 
 class CandidateJobMatchCrudController extends AbstractCrudController
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
+        private CandidateJobMatchRepository $candidateJobMatchRepository,
         private ParameterBagInterface $params,
     ) {
     }
@@ -53,11 +54,11 @@ class CandidateJobMatchCrudController extends AbstractCrudController
             ->linkToCrudAction('softDelete')
             ->addCssClass('btn btn-danger');
 
-        $matchNew = Action::new('matchNew', 'Match neue Kandidaten')
+        $matchNew = Action::new('matchNew', 'Match neue Kandidaten', 'fa fa-handshake')
             ->linkToCrudAction('matchNewCandidates')
             ->createAsGlobalAction();
 
-        $matchAll = Action::new('matchAll', 'Match alle Kandidaten')
+        $matchAll = Action::new('matchAll', 'Match alle Kandidaten', 'fa fa-handshake')
             ->linkToCrudAction('matchAllCandidates')
             ->createAsGlobalAction();
 
@@ -80,6 +81,7 @@ class CandidateJobMatchCrudController extends AbstractCrudController
             ->add(Crud::PAGE_DETAIL, $softDeleteDetail)
             ->add(Crud::PAGE_EDIT, $softDeleteDetail)
             ->disable(Action::DELETE)
+            ->disable(Action::EDIT)
             ->disable(Action::NEW);
 
     }
@@ -149,14 +151,14 @@ class CandidateJobMatchCrudController extends AbstractCrudController
             return $this->redirect($request->headers->get('referer'));
         }
 
-        $entity = $this->entityManager->getRepository(CandidateJobMatch::class)->find($id);
+        $candidateJobMatch = $this->candidateJobMatchRepository->find($id);
 
-        if (!$entity) {
-            $this->addFlash('danger', 'Entity nicht gefunden.');
+        if (!$candidateJobMatch) {
+            $this->addFlash('danger', 'Job Match nicht gefunden.');
             return $this->redirect($request->headers->get('referer'));
         }
 
-        $entity->setStatus(CandidateJobMatchStatus::IGNORED);
+        $candidateJobMatch->setStatus(CandidateJobMatchStatus::IGNORED);
         $this->entityManager->flush();
 
         $this->addFlash('success', 'Job Match wurde gelöscht (Status ignored).');
@@ -208,7 +210,7 @@ class CandidateJobMatchCrudController extends AbstractCrudController
         $projectDir = $this->params->get('kernel.project_dir');
         $consoleCommand = sprintf('%s/bin/console app:candidate-job-match %s', $projectDir, escapeshellarg($mode));
 
-        $pidFile = '/tmp/candidate-match.pid';
+        $pidFile = sprintf('%s/var/tmp/candidate-match.pid', $projectDir);
 
         if (file_exists($pidFile)) {
             $pid = (int) file_get_contents($pidFile);
@@ -222,8 +224,9 @@ class CandidateJobMatchCrudController extends AbstractCrudController
         }
 
         $command = sprintf(
-            '%s > /tmp/candidate-match.log 2>&1 & echo $!',
-            $consoleCommand
+            '%s > %s/var/tmp/candidate-match.log 2>&1 & echo $!',
+            $consoleCommand,
+            $projectDir
         );
 
         $pid = (int) shell_exec($command);

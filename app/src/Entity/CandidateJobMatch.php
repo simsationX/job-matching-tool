@@ -20,7 +20,7 @@ class CandidateJobMatch
     private Candidate $candidate;
 
     #[ORM\Column(type: 'string')]
-    private string $company;
+    private ?string $company = null;
 
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $companyPhone = null;
@@ -38,7 +38,7 @@ class CandidateJobMatch
     private ?string $contactPhone = null;
 
     #[ORM\Column(type: 'string')]
-    private string $position;
+    private ?string $position = null;
 
     #[ORM\Column(type: 'bigint', nullable: true)]
     private ?int $positionId = null;
@@ -50,13 +50,16 @@ class CandidateJobMatch
     private ?string $location = null;
 
     #[ORM\Column(type: 'text')]
-    private string $description;
+    private ?string $description = null;
 
     #[ORM\Column(type: 'float')]
     private ?float $score = null;
 
     #[ORM\Column(type: 'datetime')]
     private \DateTimeInterface $foundAt;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $exported = false;
 
     #[ORM\Column(type: 'string', length: 10, enumType: CandidateJobMatchStatus::class)]
     private CandidateJobMatchStatus $status = CandidateJobMatchStatus::ACTIVE;
@@ -78,12 +81,12 @@ class CandidateJobMatch
         return $this;
     }
 
-    public function getCompany(): string
+    public function getCompany(): ?string
     {
         return $this->company;
     }
 
-    public function setCompany(string $company): self
+    public function setCompany(?string $company): self
     {
         $this->company = $company;
 
@@ -150,12 +153,12 @@ class CandidateJobMatch
         return $this;
     }
 
-    public function getPosition(): string
+    public function getPosition(): ?string
     {
         return $this->position;
     }
 
-    public function setPosition(string $position): self
+    public function setPosition(?string $position): self
     {
         $this->position = $position;
 
@@ -198,12 +201,12 @@ class CandidateJobMatch
         return $this;
     }
 
-    public function getDescription(): string
+    public function getDescription(): ?string
     {
         return $this->description;
     }
 
-    public function setDescription(string $description): self
+    public function setDescription(?string $description): self
     {
         $this->description = $description;
 
@@ -253,5 +256,16 @@ class CandidateJobMatch
     public function isIgnored(): bool
     {
         return $this->status === CandidateJobMatchStatus::IGNORED;
+    }
+
+    public function isExported(): bool
+    {
+        return $this->exported;
+    }
+
+    public function setExported(bool $exported): self
+    {
+        $this->exported = $exported;
+        return $this;
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Entity\MatchLog;
+use App\Entity\Candidate;
 use App\Exception\NoMatchesToExportException;
 use App\Repository\CandidateRepository;
 use App\Service\CandidateJobMatchExporterService;
@@ -35,47 +35,66 @@ class CandidateJobMatchCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addArgument('mode', InputArgument::REQUIRED, 'all oder new');
+            ->addArgument('mode', InputArgument::REQUIRED, 'all | new | single')
+            ->addArgument('candidateId', InputArgument::OPTIONAL, 'Candidate ID (required if mode=single)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $mode = $input->getArgument('mode');
+        $candidateId = $input->getArgument('candidateId');
+
         $io = new SymfonyStyle($input, $output);
 
         $io->title('Start matching process...');
 
-        $batchSize = 100;
-        $offset = 0;
         $totalMatches = 0;
         $processed = 0;
 
-        do {
-            $candidates = $mode === 'new'
-                ? $this->candidateRepository->findCandidatesWithoutMatches($batchSize, $offset)
-                : $this->candidateRepository->findAllCandidates($batchSize, $offset);
-
-            foreach ($candidates as $candidate) {
-                $totalMatches += $this->matchService->matchCandidate($candidate);
-                $processed++;
-
-                if ($processed % 10 === 0) {
-                    $io->info("$processed candidates processed so far...");
-                }
+        if ($mode === 'single') {
+            if (!$candidateId) {
+                $io->error('You must provide a candidateId when using mode=single.');
+                return Command::FAILURE;
             }
 
+            /** @var Candidate $candidate */
+            $candidate = $this->candidateRepository->find($candidateId);
+            if (null === $candidate) {
+                $io->error("Candidate with ID $candidateId not found.");
+                return Command::FAILURE;
+            }
+
+            $totalMatches = $this->matchService->matchCandidate($candidate);
             $this->entityManager->flush();
-            $this->entityManager->clear();
 
-            $offset += $batchSize;
+            $io->success("Matched candidate #$candidateId with $totalMatches jobs.");
+        } else {
+            $batchSize = 100;
+            $offset = 0;
 
-        } while (!empty($candidates));
+            do {
+                $candidates = $mode === 'new'
+                    ? $this->candidateRepository->findCandidatesWithoutMatches($batchSize, $offset)
+                    : $this->candidateRepository->findAllCandidates($batchSize, $offset);
+
+                foreach ($candidates as $candidate) {
+                    $totalMatches += $this->matchService->matchCandidate($candidate);
+                    $processed++;
+
+                    if ($processed % 10 === 0) {
+                        $io->info("$processed candidates processed so far...");
+                    }
+                }
+
+                $this->entityManager->flush();
+                $this->entityManager->clear();
+
+                $offset += $batchSize;
+
+            } while (!empty($candidates));
+        }
 
         $io->success("Matching done. Total candidates processed: $processed, total matches: $totalMatches");
-
-        $matchLog = new MatchLog();
-        $matchLog->setRunAt(new \DateTimeImmutable());
-        $this->entityManager->persist($matchLog);
 
         try {
             $io->info('Create CSV report...');
@@ -88,8 +107,6 @@ class CandidateJobMatchCommand extends Command
         } catch (NoMatchesToExportException $e) {
             $io->info($e->getMessage());
         }
-
-        $matchLog->setExportedAt(new \DateTimeImmutable());
 
         $this->entityManager->flush();
 

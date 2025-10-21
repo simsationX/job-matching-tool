@@ -7,7 +7,7 @@
                   .setAction('detail')
                   .setEntityId(match.id)
                 }}">
-                    {{ match.company }} – {{ match.position }} – {{ match.location }} – {{ match.score|number_format(2, '.', '') }}
+                    {{ match.company }} – {{ match.position }} – {{ match.location }} – {{ match.score|number_format(2, '.', '') }} – {{ match.foundAt|date('d.m.Y, H:i')  }}
                 </a>
             </li>
         {% endfor %}

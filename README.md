@@ -136,3 +136,11 @@ The job matching logic works like this:
 3a) Exact (1:1) matches yield a higher score per keyword.
 3b) Partial (LIKE) matches yield a lower score per keyword.
 4) The candidate’s keywords from position and industry are semantically compared with each job’s position and description → lowest weight in scoring.
+
+### 6. Start and kill matching process
+
+```bash
+docker exec -it webserver tail -f /var/www/html/var/tmp/candidate-match.log
+docker exec -it webserver tail -f /var/www/html/var/tmp/candidate-match.pid
+docker exec -it webserver kill -9 <PID>
+```

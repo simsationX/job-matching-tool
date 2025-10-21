@@ -4,3 +4,5 @@
 /.env.local
 /.idea
 /.vscode
+/app/data/job_ids.pkl
+/app/data/jobs.index

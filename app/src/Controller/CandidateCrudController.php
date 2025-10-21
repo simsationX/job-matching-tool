@@ -3,20 +3,22 @@
 namespace App\Controller;
 
 use App\Entity\Candidate;
+use App\Entity\CandidateJobMatch;
 use App\Service\CandidateJobMatchExporterService;
 use App\Service\CandidateJobMatchService;
 use App\Service\MatchReportMailerService;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Process\Process;
 
 class CandidateCrudController extends AbstractCrudController
 {
@@ -47,9 +49,23 @@ class CandidateCrudController extends AbstractCrudController
             ->setTemplatePath('admin/candidate/_csv_import_button.html.twig')
             ->linkToCrudAction('csvImport');
 
+        $matchCandidate = Action::new('matchCandidate', 'Match Kandidat', 'fa fa-handshake')
+            ->linkToCrudAction('matchCandidate')
+            ->setCssClass('action-matchCandidate');
+
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
-            ->add(Crud::PAGE_INDEX, $csvImport);
+            ->add(Crud::PAGE_INDEX, $csvImport)
+            ->add(Crud::PAGE_DETAIL, $matchCandidate)
+            ->reorder(
+                Crud::PAGE_DETAIL,
+                [
+                    Action::EDIT,
+                    'matchCandidate',
+                    Action::INDEX,
+                    Action::DELETE,
+                ]
+            );
     }
 
     public function configureFields(string $pageName): iterable
@@ -159,4 +175,58 @@ class CandidateCrudController extends AbstractCrudController
 
         return $this->redirect($request->headers->get('referer'));
     }
+
+    public function matchCandidate(
+        AdminContext $context,
+        AdminUrlGenerator $adminUrlGenerator,
+        CandidateJobMatchService $matchService,
+        CandidateJobMatchExporterService $exportService,
+        MatchReportMailerService $mailer,
+        EntityManagerInterface $entityManager
+    ): RedirectResponse {
+        /** @var Candidate $candidate */
+        $request = $context->getRequest();
+        $id = $request->query->get('entityId');
+
+        if (!$id) {
+            $this->addFlash('danger', 'Keine Entity-ID übergeben.');
+            return $this->redirect($request->headers->get('referer'));
+        }
+
+        $candidate = $this->entityManager->getRepository(Candidate::class)->find($id);
+
+        if (!$candidate) {
+            $this->addFlash('danger', 'Kandidat nicht gefunden.');
+            return $this->redirect($request->headers->get('referer'));
+        }
+
+        $matchesCount = $matchService->matchCandidate($candidate);
+
+        if ($matchesCount === 0) {
+            $this->addFlash('warning', sprintf('Keine neuen Matches für "%s".', $candidate->getName()));
+            return $this->redirect($adminUrlGenerator->setAction('detail')->setEntityId($candidate->getId())->generateUrl());
+        }
+
+        try {
+            $csvPath = $exportService->exportForCandidate($candidate);
+        } catch (\Throwable $e) {
+            $this->addFlash('warning', 'Matching erfolgreich, aber kein Export möglich: ' . $e->getMessage());
+            return $this->redirect($adminUrlGenerator->setAction('detail')->setEntityId($candidate->getId())->generateUrl());
+        }
+
+        try {
+            $mailer->sendReport($csvPath);
+        } catch (\Throwable $e) {
+            $this->addFlash('warning', 'Export erstellt, aber E-Mail konnte nicht gesendet werden: ' . $e->getMessage());
+            return $this->redirect($adminUrlGenerator->setAction('detail')->setEntityId($candidate->getId())->generateUrl());
+        }
+
+        $this->addFlash(
+            'success',
+            sprintf('Matching & Export für "%s" durchgeführt (%d Matches) – Mail wurde versendet.', $candidate->getName(), $matchesCount)
+        );
+
+        return $this->redirect($adminUrlGenerator->setAction('detail')->setEntityId($candidate->getId())->generateUrl());
+    }
+
 }

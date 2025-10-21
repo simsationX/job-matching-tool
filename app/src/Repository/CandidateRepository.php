@@ -16,8 +16,7 @@ class CandidateRepository extends ServiceEntityRepository
     public function findCandidatesWithoutMatches(int $limit = 100, int $offset = 0): array
     {
         return $this->createQueryBuilder('c')
-            ->leftJoin('c.matches', 'm')
-            ->andWhere('m.id IS NULL')
+            ->where('c.matches IS EMPTY')
             ->setMaxResults($limit)
             ->setFirstResult($offset)
             ->getQuery()

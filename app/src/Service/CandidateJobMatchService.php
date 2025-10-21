@@ -69,36 +69,66 @@ class CandidateJobMatchService
         $matches = array_slice($matches, 0, 10);
 
         $saved = 0;
-        foreach ($matches as $match) {
-            $job = $match['job'];
+        $existingMatches = $this->candidateJobMatchRepository->findBy(['candidate' => $candidate]);
 
-            $candidateJobMatch = $this->candidateJobMatchRepository->findOneBy([
-                'candidate' => $candidate,
-                'positionId' => $job->getPositionId(),
-                'adId' => $job->getAdId(),
-            ]);
+        $existingMap = [];
+        foreach ($existingMatches as $existingMatch) {
+            $key = $existingMatch->getPositionId() . '-' . $existingMatch->getAdId();
+            $existingMap[$key] = $existingMatch;
+        }
+
+        $newKeys = [];
+        foreach ($matches as $match) {
+            $updated = false;
+            $job = $match['job'];
+            $key = $job->getPositionId() . '-' . $job->getAdId();
+            $newKeys[] = $key;
+
+            /** @var CandidateJobMatch|null $candidateJobMatch */
+            $candidateJobMatch = $existingMap[$key] ?? null;
 
             if (null === $candidateJobMatch) {
                 $candidateJobMatch = new CandidateJobMatch();
                 $candidateJobMatch->setFoundAt(new \DateTimeImmutable());
+                $candidateJobMatch->setExported(false);
+                $updated = true;
             }
 
-            $candidateJobMatch->setCandidate($candidate)
-                ->setCompany($job->getCompany())
-                ->setWebsite($job->getWebsite())
-                ->setCompanyPhone($job->getCompanyPhone())
-                ->setContactEmail($job->getContactEmail())
-                ->setContactPerson($job->getContactPerson())
-                ->setContactPerson($job->getContactPhone())
-                ->setLocation($job->getLocation())
-                ->setPosition($job->getPosition())
-                ->setPositionId($job->getPositionId())
-                ->setAdId($job->getAdId())
-                ->setDescription($job->getDescription())
-                ->setScore($match['score']);
+            if (abs($candidateJobMatch->getScore() - (float)$match['score']) > 0.0001
+                || $candidateJobMatch->getPosition() !== $job->getPosition()
+                || $candidateJobMatch->getLocation() !== $job->getLocation()
+                || $candidateJobMatch->getCompany() !== $job->getCompany()
+                || $candidateJobMatch->getDescription() !== $job->getDescription()
+            ) {
+                $candidateJobMatch
+                    ->setCandidate($candidate)
+                    ->setCompany($job->getCompany())
+                    ->setWebsite($job->getWebsite())
+                    ->setCompanyPhone($job->getCompanyPhone())
+                    ->setContactEmail($job->getContactEmail())
+                    ->setContactPerson($job->getContactPerson())
+                    ->setContactPhone($job->getContactPhone())
+                    ->setLocation($job->getLocation())
+                    ->setPosition($job->getPosition())
+                    ->setPositionId($job->getPositionId())
+                    ->setAdId($job->getAdId())
+                    ->setDescription($job->getDescription())
+                    ->setScore($match['score'])
+                    ->setExported(false);
+                $updated = true;
+            }
 
-            $this->entityManager->persist($candidateJobMatch);
-            $saved++;
+            if ($updated) {
+                $this->entityManager->persist($candidateJobMatch);
+                $saved++;
+            }
+        }
+
+        foreach ($existingMatches as $existingMatch) {
+            $key = $existingMatch->getPositionId() . '-' . $existingMatch->getAdId();
+            if (!in_array($key, $newKeys, true)) {
+                $this->entityManager->remove($existingMatch);
+            }
         }
 
         $this->entityManager->flush();

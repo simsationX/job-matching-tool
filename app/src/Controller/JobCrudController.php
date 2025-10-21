@@ -41,7 +41,7 @@ class JobCrudController extends AbstractCrudController
         return $crud
             ->setEntityLabelInSingular('Job')
             ->setEntityLabelInPlural('Jobs')
-            ->setSearchFields(['company', 'position'])
+            ->setSearchFields(['company', 'position', 'location'])
             ->setPageTitle(Crud::PAGE_INDEX, 'Jobs')
             ->overrideTemplate('crud/index', 'admin/job/index.html.twig');
     }
