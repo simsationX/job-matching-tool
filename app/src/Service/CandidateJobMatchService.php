@@ -126,7 +126,7 @@ class CandidateJobMatchService
 
         foreach ($existingMatches as $existingMatch) {
             $key = $existingMatch->getPositionId() . '-' . $existingMatch->getAdId();
-            if (!in_array($key, $newKeys, true)) {
+            if (!$existingMatch->isManuallyAdded() && !in_array($key, $newKeys, true)) {
                 $this->entityManager->remove($existingMatch);
             }
         }

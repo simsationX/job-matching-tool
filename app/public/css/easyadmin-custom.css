@@ -187,3 +187,21 @@ small, .small, .ea-small {
 .action-matchCandidate i, .action-matchNew i, .action-matchAll i, .action-downloadCsv i {
     color:  #ffffff !important;
 }
+
+.candidate-select {
+    width: 400px;
+}
+
+.dropdown-menu .action-matchCandidate {
+    background: none !important;
+    color: #0b66a3 !important;
+}
+
+.dropdown-menu .action-matchCandidate:hover {
+    color: var(--bh-red) !important;
+    background-color: var(--dropdown-link-hover-bg) !important;
+}
+
+.dropdown-menu .action-matchCandidate i {
+    color: var(--dropdown-icon-color) !important;
+}

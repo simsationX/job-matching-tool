@@ -1,0 +1,20 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+{% form_theme form '@EasyAdmin/crud/form_theme.html.twig' %}
+
+{% block content %}
+    <article>
+        <section class="content-header">
+            <div class="content-header-title">
+                <h1 class="title">Job: {{ job.position }}</h1>
+            </div>
+        </section>
+        <section id="main" content="-body">
+            <div class="ea-form">
+                {{ form_start(form, {'attr': {'class': 'ea-form'}}) }}
+                {{ form_row(form.candidate) }}
+                {{ form_row(form.submit) }}
+                {{ form_end(form) }}
+            </div>
+        </section>
+    </article>
+{% endblock %}
