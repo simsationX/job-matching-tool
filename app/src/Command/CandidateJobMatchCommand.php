@@ -67,7 +67,7 @@ class CandidateJobMatchCommand extends Command
             $totalMatches = $this->matchService->matchCandidate($candidate);
             $this->entityManager->flush();
 
-            $io->success("Matched candidate #$candidateId with $totalMatches jobs.");
+            $io->info("Matched candidate #$candidateId with $totalMatches jobs.");
         } else {
             $batchSize = 100;
             $offset = 0;
@@ -95,6 +95,12 @@ class CandidateJobMatchCommand extends Command
         }
 
         $io->success("Matching done. Total candidates processed: $processed, total matches: $totalMatches");
+
+        if ($totalMatches === 0) {
+            $io->info('No CSV report to create.');
+
+            return Command::SUCCESS;
+        }
 
         try {
             $io->info('Create CSV report...');

@@ -210,13 +210,9 @@ class CandidateJobMatchCrudController extends AbstractCrudController
         $projectDir = $this->params->get('kernel.project_dir');
         $tmpDir = sprintf('%s/var/tmp', $projectDir);
 
-        if (!is_dir($tmpDir)) {
-            if (!mkdir($tmpDir, 0777, true) && !is_dir($tmpDir)) {
-                throw new \RuntimeException(sprintf('Directory "%s" was not created', $tmpDir));
-            }
+        if (!is_dir($tmpDir) && !mkdir($tmpDir, 0777, true) && !is_dir($tmpDir)) {
+            throw new \RuntimeException(sprintf('Directory "%s" was not created', $tmpDir));
         }
-
-        $consoleCommand = sprintf('bash -c "source /opt/venv/bin/activate && %s/bin/console app:candidate-job-match %s"', $projectDir, escapeshellarg($mode));
 
         $pidFile = sprintf('%s/candidate-match.pid', $tmpDir);
 
@@ -231,10 +227,13 @@ class CandidateJobMatchCrudController extends AbstractCrudController
             unlink($pidFile);
         }
 
+        $consoleCommand = sprintf('/bin/bash -c "source /opt/venv/bin/activate && exec %s/bin/console app:candidate-job-match %s"', $projectDir, escapeshellarg($mode));
+        $logFile = sprintf('%s/candidate-match.log', $tmpDir);
+
         $command = sprintf(
-            '%s > %s/candidate-match.log 2>&1 & echo $!',
+            '%s > %s 2>&1 & echo $!',
             $consoleCommand,
-            $tmpDir
+            $logFile
         );
 
         $pid = (int) shell_exec($command);
