@@ -113,9 +113,7 @@ class CandidateJobMatchCommand extends Command
 
         try {
             $io->info('Create CSV reports...');
-            dump($candidatesToExport);
             $exportedFiles = $this->exporterService->exportCandidates($candidatesToExport);
-            dump($exportedFiles);
 
             foreach ($exportedFiles as $candidateId => $csvPath) {
                 $io->info("Sending report for candidate #$candidateId...");
@@ -123,7 +121,7 @@ class CandidateJobMatchCommand extends Command
 
                 if (file_exists($csvPath)) {
                     try {
-                        //unlink($csvPath);
+                        unlink($csvPath);
                         $io->info("Deleted CSV file: $csvPath");
                     } catch (\Throwable $e) {
                         $io->warning("Failed to delete CSV: {$csvPath} ({$e->getMessage()})");
