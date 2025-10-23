@@ -30,6 +30,7 @@ class ConsultantCrudController extends AbstractCrudController
         return [
             IdField::new('id')->hideOnForm(),
             TextField::new('name', 'Berater'),
+            TextField::new('email', 'Email'),
             DateTimeField::new('createdAt', 'Erstellt am')->hideOnForm(),
             DateTimeField::new('updatedAt', 'Aktualisiert am')->hideOnForm(),
         ];

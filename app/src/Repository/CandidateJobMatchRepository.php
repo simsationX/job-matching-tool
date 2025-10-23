@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Candidate;
 use App\Entity\CandidateJobMatch;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -34,12 +35,36 @@ class CandidateJobMatchRepository extends ServiceEntityRepository
             ->join('cjm.candidate', 'c')
             ->leftJoin('c.consultant', 'consultant')
             ->andWhere('cjm.status = :activeStatus')
-            ->andWhere('cjm.exported = :exported')
             ->setParameter('activeStatus', 'active')
-            ->setParameter('exported', false)
             ->orderBy('c.id', 'ASC')
             ->addOrderBy('cjm.score', 'DESC');
 
         return $qb->getQuery()->getArrayResult();
+    }
+
+    public function findMinScoreForCandidate(Candidate $candidate): float
+    {
+        $minScore = $this->createQueryBuilder('m')
+            ->select('MIN(m.score)')
+            ->where('m.candidate = :candidate')
+            ->setParameter('candidate', $candidate)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return $minScore !== null ? (float)$minScore : 0.0;
+    }
+
+    /**
+     * @return CandidateJobMatch[]
+     */
+    public function findUnexportedMatchesForCandidate(int $candidateId): array
+    {
+        return $this->createQueryBuilder('m')
+            ->andWhere('m.candidate = :candidateId')
+            ->andWhere('m.exported = false')
+            ->setParameter('candidateId', $candidateId)
+            ->addOrderBy('m.score', 'DESC')
+            ->getQuery()
+            ->getResult();
     }
 }

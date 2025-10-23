@@ -18,30 +18,22 @@ class CandidateJobMatchExporterService
         private ParameterBagInterface $params,
     ) {}
 
-    public function exportAll(): string
+    public function exportCandidates(array $candidateIds): array
     {
-        $matches = $this->candidateJobMatchRepository->findAllForExport();
+        $exportedFiles = [];
 
-        if (!$matches) {
-            throw new NoMatchesToExportException('No matches to export.');
+        foreach ($candidateIds as $candidateId) {
+            $matches = $this->candidateJobMatchRepository->findUnexportedMatchesForCandidate($candidateId);
+
+            if (empty($matches)) {
+                continue;
+            }
+
+            $csvPath = $this->exportMatches($matches, 'candidate_' . $candidateId);
+            $exportedFiles[$candidateId] = $csvPath;
         }
 
-        return $this->exportMatches($matches, 'all');
-    }
-
-    public function exportForCandidate(Candidate $candidate): string
-    {
-        $matches = $this->candidateJobMatchRepository->findBy([
-            'candidate' => $candidate,
-            'status' => 'active',
-            'exported' => false,
-        ]);
-
-        if (!$matches) {
-            throw new NoMatchesToExportException('No matches for this candidate.');
-        }
-
-        return $this->exportMatches($matches, 'candidate_' . $candidate->getId());
+        return $exportedFiles;
     }
 
     private function exportMatches(array $matches, string $suffix): string
@@ -69,45 +61,22 @@ class CandidateJobMatchExporterService
         ]);
 
         foreach ($matches as $match) {
-            if (is_array($match)) {
-                fputcsv($fp, [
-                    $match['candidate_id'],
-                    $match['candidate_name'],
-                    $match['candidate_location'],
-                    $match['candidate_additional_locations'],
-                    $match['candidate_consultant'],
-                    $match['job_company'],
-                    $match['job_website'],
-                    $match['job_position'],
-                    $match['job_description'],
-                    $match['job_location'],
-                    number_format((float)$match['score'], 2, '.', ''),
-                    $match['found_at']?->format('Y-m-d H:i:s') ?? '',
-                ]);
+            fputcsv($fp, [
+                $match->getCandidate()->getId(),
+                $match->getCandidate()->getName(),
+                $match->getCandidate()->getLocation(),
+                $match->getCandidate()->getAdditionalLocations(),
+                $match->getCandidate()->getConsultant()?->getName(),
+                $match->getCompany(),
+                $match->getWebsite(),
+                $match->getPosition(),
+                $match->getDescription(),
+                $match->getLocation(),
+                number_format($match->getScore(), 2, '.', ''),
+                $match->getFoundAt()?->format('Y-m-d H:i:s') ?? '',
+            ]);
 
-                $entity = $this->candidateJobMatchRepository->find($match['id'] ?? null);
-                if ($entity) {
-                    $entity->setExported(true);
-                }
-            } else {
-                // falls Entity
-                fputcsv($fp, [
-                    $match->getCandidate()->getId(),
-                    $match->getCandidate()->getName(),
-                    $match->getCandidate()->getLocation(),
-                    $match->getCandidate()->getAdditionalLocations(),
-                    $match->getCandidate()->getConsultant()?->getName(),
-                    $match->getCompany(),
-                    $match->getWebsite(),
-                    $match->getPosition(),
-                    $match->getDescription(),
-                    $match->getLocation(),
-                    number_format($match->getScore(), 2, '.', ''),
-                    $match->getFoundAt()?->format('Y-m-d H:i:s') ?? '',
-                ]);
-
-                $match->setExported(true);
-            }
+            $match->setExported(true);
         }
 
         fclose($fp);

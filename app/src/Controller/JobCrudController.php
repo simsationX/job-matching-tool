@@ -114,7 +114,8 @@ class JobCrudController extends AbstractCrudController
                     Action::INDEX,
                     Action::DELETE,
                 ]
-            );
+            )
+            ->disable(Action::NEW);
     }
 
     public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
@@ -251,7 +252,6 @@ class JobCrudController extends AbstractCrudController
                 ->setDescription($job->getDescription())
                 ->setScore(100)
                 ->setFoundAt(new \DateTimeImmutable())
-                ->setManuallyAdded(true)
                 ->setExported(false);
 
             $em->persist($candidateJobMatch);

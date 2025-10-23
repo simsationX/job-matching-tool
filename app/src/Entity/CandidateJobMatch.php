@@ -61,9 +61,6 @@ class CandidateJobMatch
     #[ORM\Column(type: 'boolean')]
     private bool $exported = false;
 
-    #[ORM\Column(type: "boolean")]
-    private bool $manuallyAdded = false;
-
     #[ORM\Column(type: 'string', length: 10, enumType: CandidateJobMatchStatus::class)]
     private CandidateJobMatchStatus $status = CandidateJobMatchStatus::ACTIVE;
 
@@ -269,17 +266,6 @@ class CandidateJobMatch
     public function setExported(bool $exported): self
     {
         $this->exported = $exported;
-        return $this;
-    }
-
-    public function isManuallyAdded(): bool
-    {
-        return $this->manuallyAdded;
-    }
-
-    public function setManuallyAdded(bool $manuallyAdded): self
-    {
-        $this->manuallyAdded = $manuallyAdded;
         return $this;
     }
 }

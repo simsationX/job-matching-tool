@@ -23,6 +23,7 @@ class JobImportService
         $platform = $connection->getDatabasePlatform();
 
         $connection->executeStatement('SET FOREIGN_KEY_CHECKS=0'); // nötig, falls FK bestehen
+        $connection->executeStatement($platform->getTruncateTableSQL('job_geo_city', true));
         $connection->executeStatement($platform->getTruncateTableSQL('job', true));
         $connection->executeStatement($platform->getTruncateTableSQL('job_import_error', true));
         $connection->executeStatement('SET FOREIGN_KEY_CHECKS=1');
@@ -35,6 +36,7 @@ class JobImportService
         $batchSize = 1000;
         $imported = 0;
         $rowIndex = 0;
+        $importedAt = new \DateTimeImmutable();
 
         foreach ($sheet->getRowIterator() as $row) {
             $rowIndex++;
@@ -90,6 +92,7 @@ class JobImportService
             $job->setAdId((int)$fields['adId']);
             $job->setLocation($fields['location']);
             $job->setDescription($fields['description']);
+            $job->setImportedAt($importedAt);
 
             $geoCities = [];
             $location = $fields['location'];

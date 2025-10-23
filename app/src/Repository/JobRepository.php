@@ -2,13 +2,13 @@
 
 namespace App\Repository;
 
-use App\Entity\GeoCity;
 use App\Entity\Job;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 class JobRepository extends ServiceEntityRepository
 {
+    public const FALLBACK_LOCATIONS = ['Deutschland', 'Germany', 'Allemagne', null];
 
     public function __construct(ManagerRegistry $registry)
     {
@@ -46,7 +46,7 @@ class JobRepository extends ServiceEntityRepository
      * @param float $radiusKm
      * @return Job[]
      */
-    public function findJobsWithinRadius(float $lat, float $lng, float $radiusKm): array
+    public function findJobsWithinRadiusAndImportedAt(float $lat, float $lng, float $radiusKm, ?\DateTimeImmutable $importedAfter = null): array
     {
         $conn = $this->getEntityManager()->getConnection();
 
@@ -64,11 +64,19 @@ class JobRepository extends ServiceEntityRepository
                )) <= :radius
     ';
 
+        if ($importedAfter !== null) {
+            $sql .= ' AND j.imported_at >= :importedAfter';
+        }
+
         $stmt = $conn->prepare($sql);
 
         $stmt->bindValue('lat', $lat);
         $stmt->bindValue('lng', $lng);
         $stmt->bindValue('radius', $radiusKm);
+
+        if ($importedAfter !== null) {
+            $stmt->bindValue('importedAfter', $importedAfter->format('Y-m-d H:i:s'));
+        }
 
         $result = $stmt->executeQuery();
         $rows = $result->fetchAllAssociative();
@@ -80,5 +88,29 @@ class JobRepository extends ServiceEntityRepository
 
         // Als Entities laden
         return $this->findBy(['id' => $jobIds]);
+    }
+
+    public function findLastImportedAt(): ?\DateTimeImmutable
+    {
+        $result = $this->createQueryBuilder('j')
+            ->select('MAX(j.importedAt) AS lastImportedAt')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return $result ? new \DateTimeImmutable($result) : null;
+    }
+
+    public function findFallbackJobs(?\DateTimeInterface $importedAfter = null): array
+    {
+        $qb = $this->createQueryBuilder('j')
+            ->where('j.location IN (:locations)')
+            ->setParameter('locations', self::FALLBACK_LOCATIONS);
+
+        if ($importedAfter !== null) {
+            $qb->andWhere('j.importedAt >= :importedAfter')
+                ->setParameter('importedAfter', $importedAfter);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 }

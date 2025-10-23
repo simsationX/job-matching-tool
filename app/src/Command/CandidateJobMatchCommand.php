@@ -50,6 +50,7 @@ class CandidateJobMatchCommand extends Command
 
         $totalMatches = 0;
         $processed = 0;
+        $candidatesToExport = [];
 
         if ($mode === 'single') {
             if (!$candidateId) {
@@ -60,14 +61,17 @@ class CandidateJobMatchCommand extends Command
             /** @var Candidate $candidate */
             $candidate = $this->candidateRepository->find($candidateId);
             if (null === $candidate) {
-                $io->error("Candidate with ID $candidateId not found.");
+                $io->error(sprintf('Candidate with ID %d not found.', $processed));
                 return Command::FAILURE;
             }
 
             $totalMatches = $this->matchService->matchCandidate($candidate);
-            $this->entityManager->flush();
+            $processed++;
 
-            $io->info("Matched candidate #$candidateId with $totalMatches jobs.");
+            if ($totalMatches > 0) {
+                $candidatesToExport[] = $candidateId;
+            }
+            $io->info(sprintf('Matched candidate with ID %d with %d jobs.', $candidateId, $totalMatches));
         } else {
             $batchSize = 100;
             $offset = 0;
@@ -78,11 +82,17 @@ class CandidateJobMatchCommand extends Command
                     : $this->candidateRepository->findAllCandidates($batchSize, $offset);
 
                 foreach ($candidates as $candidate) {
-                    $totalMatches += $this->matchService->matchCandidate($candidate);
+                    $matchesPerCandidate = $this->matchService->matchCandidate($candidate);
+                    $totalMatches += $matchesPerCandidate;
                     $processed++;
 
+                    if ($matchesPerCandidate > 0) {
+                        $candidatesToExport[] = $candidate->getId();
+                        $io->info(sprintf('Matched candidate with ID %d with %d jobs.', $candidate->getId(), $matchesPerCandidate));
+                    }
+
                     if ($processed % 10 === 0) {
-                        $io->info("$processed candidates processed so far...");
+                        $io->info(sprintf('%s candidates processed so far...',$processed));
                     }
                 }
 
@@ -96,26 +106,37 @@ class CandidateJobMatchCommand extends Command
 
         $io->success("Matching done. Total candidates processed: $processed, total matches: $totalMatches");
 
-        if ($totalMatches === 0) {
+        if (empty($candidatesToExport)) {
             $io->info('No CSV report to create.');
-
             return Command::SUCCESS;
         }
 
         try {
-            $io->info('Create CSV report...');
-            $csvPath = $this->exporterService->exportAll();
+            $io->info('Create CSV reports...');
+            dump($candidatesToExport);
+            $exportedFiles = $this->exporterService->exportCandidates($candidatesToExport);
+            dump($exportedFiles);
 
-            $io->info('Send CSV report...');
-            $this->mailerService->sendReport($csvPath);
+            foreach ($exportedFiles as $candidateId => $csvPath) {
+                $io->info("Sending report for candidate #$candidateId...");
+                $this->mailerService->sendReportForCandidate($csvPath, $candidateId);
 
-            $io->success("CSV report sent successfully.");
+                if (file_exists($csvPath)) {
+                    try {
+                        //unlink($csvPath);
+                        $io->info("Deleted CSV file: $csvPath");
+                    } catch (\Throwable $e) {
+                        $io->warning("Failed to delete CSV: {$csvPath} ({$e->getMessage()})");
+                    }
+                }
+            }
+
+            $io->success("All candidate reports sent successfully.");
         } catch (NoMatchesToExportException $e) {
             $io->info($e->getMessage());
         }
 
         $this->entityManager->flush();
-
         return Command::SUCCESS;
     }
 }

@@ -23,9 +23,6 @@ class CandidateJobMatchService
         private readonly EntityManagerInterface $entityManager,
         private readonly ParameterBagInterface $params,
     ) {
-        $this->fallbackJobs = $this->jobRepository->findBy([
-            'location' => ['Deutschland', 'Germany', 'Allemagne', null]
-        ]);
     }
 
     public function matchCandidate(Candidate $candidate): int
@@ -49,11 +46,15 @@ class CandidateJobMatchService
 
         $candidateJobs = [];
 
+        $lastImportedAt = $this->jobRepository->findLastImportedAt();
+        $fallbackJobs = $this->jobRepository->findFallbackJobs($lastImportedAt);
+
         foreach ($geoCities as $geoCity) {
-            $jobsWithinRadius = $this->jobRepository->findJobsWithinRadius(
+            $jobsWithinRadius = $this->jobRepository->findJobsWithinRadiusAndImportedAt(
                 $geoCity->getLatitude(),
                 $geoCity->getLongitude(),
-                50
+                50,
+                $lastImportedAt
             );
 
             foreach ($jobsWithinRadius as $job) {
@@ -63,13 +64,14 @@ class CandidateJobMatchService
             }
         }
 
-        $candidateJobs = array_merge($candidateJobs, $this->fallbackJobs);
+        $candidateJobs = array_merge($candidateJobs, $fallbackJobs);
 
         $matches = $this->calculateMatches($candidate, $candidateJobs);
         $matches = array_slice($matches, 0, 10);
 
         $saved = 0;
         $existingMatches = $this->candidateJobMatchRepository->findBy(['candidate' => $candidate]);
+        $minScoreThreshold = $this->candidateJobMatchRepository->findMinScoreForCandidate($candidate);
 
         $existingMap = [];
         foreach ($existingMatches as $existingMatch) {
@@ -77,29 +79,36 @@ class CandidateJobMatchService
             $existingMap[$key] = $existingMatch;
         }
 
-        $newKeys = [];
         foreach ($matches as $match) {
-            $updated = false;
+            if ($match['score'] === 0) {
+                continue;
+            }
+
+            if ($match['score'] < $minScoreThreshold) {
+                continue;
+            }
+
             $job = $match['job'];
             $key = $job->getPositionId() . '-' . $job->getAdId();
-            $newKeys[] = $key;
 
             /** @var CandidateJobMatch|null $candidateJobMatch */
             $candidateJobMatch = $existingMap[$key] ?? null;
+            $updated = false;
 
             if (null === $candidateJobMatch) {
                 $candidateJobMatch = new CandidateJobMatch();
                 $candidateJobMatch->setFoundAt(new \DateTimeImmutable());
-                $candidateJobMatch->setExported(false);
+                $candidateJobMatch->setExported(false); // Nur bei neuen Matches
                 $updated = true;
             }
 
-            if (abs($candidateJobMatch->getScore() - (float)$match['score']) > 0.0001
+            $hasChanges = abs($candidateJobMatch->getScore() - (float)$match['score']) > 0.0001
                 || $candidateJobMatch->getPosition() !== $job->getPosition()
                 || $candidateJobMatch->getLocation() !== $job->getLocation()
                 || $candidateJobMatch->getCompany() !== $job->getCompany()
-                || $candidateJobMatch->getDescription() !== $job->getDescription()
-            ) {
+                || $candidateJobMatch->getDescription() !== $job->getDescription();
+
+            if ($hasChanges) {
                 $candidateJobMatch
                     ->setCandidate($candidate)
                     ->setCompany($job->getCompany())
@@ -113,21 +122,13 @@ class CandidateJobMatchService
                     ->setPositionId($job->getPositionId())
                     ->setAdId($job->getAdId())
                     ->setDescription($job->getDescription())
-                    ->setScore($match['score'])
-                    ->setExported(false);
+                    ->setScore($match['score']);
                 $updated = true;
             }
 
             if ($updated) {
                 $this->entityManager->persist($candidateJobMatch);
                 $saved++;
-            }
-        }
-
-        foreach ($existingMatches as $existingMatch) {
-            $key = $existingMatch->getPositionId() . '-' . $existingMatch->getAdId();
-            if (!$existingMatch->isManuallyAdded() && !in_array($key, $newKeys, true)) {
-                $this->entityManager->remove($existingMatch);
             }
         }
 

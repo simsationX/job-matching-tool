@@ -56,12 +56,6 @@ class Job
     #[ORM\Column(type: 'datetime')]
     private \DateTimeInterface $importedAt;
 
-    #[ORM\PrePersist]
-    public function prePersist(): void
-    {
-        $this->importedAt = new \DateTimeImmutable();
-    }
-
     public function __construct()
     {
         $this->geoCities = new ArrayCollection();

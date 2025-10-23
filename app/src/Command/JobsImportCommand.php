@@ -36,7 +36,7 @@ class JobsImportCommand extends Command
             return Command::FAILURE;
         }
 
-        $count = $this->jobImportService->import($filePath, $io);
+        $count = $this->jobImportService->import($filePath);
         $io->success("Import done. $count jobs successfully imported.");
 
         unlink($filePath);
