@@ -8,6 +8,8 @@ class CandidateKeywordService
 {
     private const CANDIDATE_FIELDS = ['position', 'industry', 'skills', 'additionalActivityAreas'];
 
+    private const STOP_WORDS = ['und', 'oder', 'an', 'am', 'der', 'die', 'das', 'in', 'mit', 'von', 'für', 'auf', 'bei', 'zu', 'als'];
+
     public function __construct() {}
 
     /**
@@ -33,14 +35,20 @@ class CandidateKeywordService
         return array_unique(array_filter($keywords));
     }
 
-    private function extractKeywords(?string $text, array $existing = []): array
+    public function extractKeywords(?string $text, array $existing = []): array
     {
         if (null === $text) {
             return $existing;
         }
 
         $tokens = preg_split('/[\s,;\/]+/u', $text);
-        return array_merge($existing, $tokens);
+        $filteredTokens = array_filter($tokens, static function(string $token): string {
+            $stopWords = self::STOP_WORDS;
+            $token = mb_strtolower(trim($token, " \t\n\r\0\x0B()"));
+            return $token !== '' && !in_array($token, $stopWords, true);
+        });
+
+        return array_merge($existing, $filteredTokens);
     }
 
     public function highlightText(string $text, array $keywords): string
@@ -61,5 +69,19 @@ class CandidateKeywordService
         }
 
         return $text;
+    }
+
+    public function containsAnyKeyword(string $text, array $keywords): bool
+    {
+        $text = mb_strtolower($text);
+
+        foreach ($keywords as $kw) {
+            $kw = mb_strtolower(trim($kw));
+            if ($kw !== '' && preg_match('/\b' . preg_quote($kw, '/') . '\b/u', $text)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

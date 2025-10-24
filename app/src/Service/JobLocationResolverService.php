@@ -11,6 +11,7 @@ class JobLocationResolverService
         'deutschland',
         'germany',
         'allemagne',
+        'bundesweit'
     ];
 
     private const LOCATION_MAP = [

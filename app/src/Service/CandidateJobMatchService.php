@@ -144,7 +144,9 @@ class CandidateJobMatchService
     {
         $results = [];
         $keywords = $this->candidateKeywordService->extractCandidateKeywords($candidate);
-
+        $candidateKeyWordsPosition = $this->candidateKeywordService->extractKeywords($candidate->getPosition());
+        $candidateKeyWordsIndustry = $this->candidateKeywordService->extractKeywords($candidate->getIndustry());
+        
         $candidateText = implode(' ', $keywords);
         $faissScores = $this->getFaissScores($candidateText, $jobs);
 
@@ -152,6 +154,15 @@ class CandidateJobMatchService
             $score = 0;
             $position = mb_strtolower($job->getPosition() ?? '');
             $description = mb_strtolower($job->getDescription() ?? '');
+            $positionDescriptionText = sprintf('%s %s', $position, $description);
+
+            $hasMatchPosition = $this->candidateKeywordService->containsAnyKeyword($positionDescriptionText, $candidateKeyWordsPosition);
+            $hasMatchIndustry = $this->candidateKeywordService->containsAnyKeyword($positionDescriptionText, $candidateKeyWordsIndustry);
+
+            if (!$hasMatchPosition || !$hasMatchIndustry) {
+                $results[] = ['job' => $job, 'score' => $score];
+                continue;
+            }
 
             foreach ($keywords as $kw) {
                 $kw = mb_strtolower(trim($kw));
@@ -195,12 +206,12 @@ class CandidateJobMatchService
             }
 
             $faissScore = $faissScores[$job->getId()] ?? 0;
-            $score *= (1 + $faissScore);
+            $score *= (1 + 0.3 * $faissScore);
 
             $results[] = ['job' => $job, 'score' => $score];
         }
 
-        usort($results, fn($a, $b) => $b['score'] <=> $a['score']);
+        usort($results, static fn($a, $b) => $b['score'] <=> $a['score']);
 
         return $results;
     }

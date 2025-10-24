@@ -8,7 +8,7 @@ use Doctrine\Persistence\ManagerRegistry;
 
 class JobRepository extends ServiceEntityRepository
 {
-    public const FALLBACK_LOCATIONS = ['Deutschland', 'Germany', 'Allemagne', null];
+    public const FALLBACK_LOCATIONS = ['Deutschland', 'Germany', 'Allemagne', 'bundesweit', null];
 
     public function __construct(ManagerRegistry $registry)
     {
