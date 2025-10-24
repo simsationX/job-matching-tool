@@ -146,7 +146,7 @@ class CandidateJobMatchService
         $keywords = $this->candidateKeywordService->extractCandidateKeywords($candidate);
         $candidateKeyWordsPosition = $this->candidateKeywordService->extractKeywords($candidate->getPosition());
         $candidateKeyWordsIndustry = $this->candidateKeywordService->extractKeywords($candidate->getIndustry());
-        
+
         $candidateText = implode(' ', $keywords);
         $faissScores = $this->getFaissScores($candidateText, $jobs);
 

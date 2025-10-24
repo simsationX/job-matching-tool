@@ -5,7 +5,6 @@ namespace App\Command;
 use App\Entity\Candidate;
 use App\Exception\NoMatchesToExportException;
 use App\Repository\CandidateRepository;
-use App\Service\CandidateJobMatchExporterService;
 use App\Service\CandidateJobMatchService;
 use App\Service\MatchReportMailerService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -24,7 +23,6 @@ class CandidateJobMatchCommand extends Command
 {
     public function __construct(
         private readonly CandidateJobMatchService $matchService,
-        private readonly CandidateJobMatchExporterService $exporterService,
         private readonly CandidateRepository $candidateRepository,
         private readonly MatchReportMailerService $mailerService,
         private readonly EntityManagerInterface $entityManager,
@@ -106,27 +104,11 @@ class CandidateJobMatchCommand extends Command
 
         $io->success("Matching done. Total candidates processed: $processed, total matches: $totalMatches");
 
-        if (empty($candidatesToExport)) {
-            $io->info('No CSV report to create.');
-            return Command::SUCCESS;
-        }
 
         try {
-            $io->info('Create CSV reports...');
-            $exportedFiles = $this->exporterService->exportCandidates($candidatesToExport);
-
-            foreach ($exportedFiles as $candidateId => $csvPath) {
+            foreach ($candidatesToExport as $candidateId) {
                 $io->info("Sending report for candidate #$candidateId...");
-                $this->mailerService->sendReportForCandidate($csvPath, $candidateId);
-
-                if (file_exists($csvPath)) {
-                    try {
-                        unlink($csvPath);
-                        $io->info("Deleted CSV file: $csvPath");
-                    } catch (\Throwable $e) {
-                        $io->warning("Failed to delete CSV: {$csvPath} ({$e->getMessage()})");
-                    }
-                }
+                $this->mailerService->sendReportForCandidate($candidateId);
             }
 
             $io->success("All candidate reports sent successfully.");
