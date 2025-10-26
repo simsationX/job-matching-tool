@@ -205,3 +205,34 @@ small, .small, .ea-small {
 .dropdown-menu .action-matchCandidate i {
     color: var(--dropdown-icon-color) !important;
 }
+
+.candidate-job-matches-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.candidate-job-matches-list li {
+    margin-bottom: 5px;
+}
+
+.candidate-job-matches-list input {
+    margin-right: 10px;
+}
+
+.candidate-job-matches-delete {
+    width: 240px;
+    padding: 15px 10px 15px 10px !important;
+    height: 30px;
+    font-size: 14px;
+    color: var(--bh-white) !important;
+    --button-bg: var(--bh-red) !important;
+}
+
+.candidate-job-matches-delete:hover {
+    background-color: #a51f1f !important; /* slightly darker red */
+    border-color: #a51f1f !important;
+}
+
+.candidate-job-matches-delete .i {
+    color: var(--bh-white) !important;
+}

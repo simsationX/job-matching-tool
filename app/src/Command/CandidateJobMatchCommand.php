@@ -104,7 +104,6 @@ class CandidateJobMatchCommand extends Command
 
         $io->success("Matching done. Total candidates processed: $processed, total matches: $totalMatches");
 
-
         try {
             foreach ($candidatesToExport as $candidateId) {
                 $io->info("Sending report for candidate #$candidateId...");

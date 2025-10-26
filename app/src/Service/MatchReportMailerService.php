@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Candidate;
 use App\Repository\CandidateJobMatchRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
@@ -13,7 +14,8 @@ class MatchReportMailerService
 
     public function __construct(
         private MailerInterface $mailer,
-        private CandidateJobMatchRepository $candidateJobMatchRepository
+        private CandidateJobMatchRepository $candidateJobMatchRepository,
+        private EntityManagerInterface $entityManager,
     ) {}
 
     public function sendReportForCandidate(int $candidateId): void
@@ -35,7 +37,11 @@ class MatchReportMailerService
                 self::CANDIDATE_JOB_MATCH_URL,
                 $match->getId()
             );
+            $match->setExported(true);
+            $this->entityManager->persist($match);
         }
+
+        $this->entityManager->flush();
 
         $email = (new Email())
             ->from('info@bullheads.de')

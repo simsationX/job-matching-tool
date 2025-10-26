@@ -1,17 +1,31 @@
 {% if field.value|length %}
-    <ul>
-        {% for match in field.value %}
-            <li>
-                <a href="{{  ea_url()
-                  .setController('App\\Controller\\CandidateJobMatchCrudController')
-                  .setAction('detail')
-                  .setEntityId(match.id)
-                }}">
-                    {{ match.company }} – {{ match.position }} – {{ match.location }} – {{ match.score|number_format(2, '.', '') }} – {{ match.foundAt|date('d.m.Y, H:i')  }}
-                </a>
-            </li>
-        {% endfor %}
-    </ul>
+    <form method="post" action="{{ path('candidate_matches_bulk_ignore', { id: ea.entity.instance.id }) }}">
+        <ul class="candidate-job-matches-list">
+            {% for match in field.value %}
+                {% if match.status.value == "active" %}
+                    <li>
+                        <label>
+                            <input type="checkbox" name="matches[]" value="{{ match.id }}">
+                            <a href="{{ ea_url()
+                                .setController('App\\Controller\\CandidateJobMatchCrudController')
+                                .setAction('detail')
+                                .setEntityId(match.id)
+                            }}">
+                                {{ match.company }} – {{ match.position }} – {{ match.location }} –
+                                {{ match.score|number_format(2, '.', '') }} –
+                                {{ match.foundAt|date('d.m.Y, H:i') }}
+                            </a>
+                        </label>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+
+        <input type="hidden" name="_token" value="{{ csrf_token('bulk_delete_matches') }}">
+        <button type="submit" class="candidate-job-matches-delete btn btn-danger btn-sm">
+            <i class="fa fa-trash"></i> Ausgewählte Matches löschen
+        </button>
+    </form>
 {% else %}
     <span>Keine Matches</span>
 {% endif %}
