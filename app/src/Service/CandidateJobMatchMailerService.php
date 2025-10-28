@@ -49,7 +49,7 @@ final class CandidateJobMatchMailerService
                 ->context([
                     'candidate' => $candidate,
                     'match' => $match,
-                    'standardText' => 'Bitte prüfen Sie folgenden Job:',
+                    'standardText' => 'Bitte prüfen Sie folgenden Job und geben Sie uns einen Hinweis, ob der Job für Sie interessant ist. Wir nehmen dann Kontakt zum Unternehmen auf.',
                     'jobDescriptionHtml' => $jobDescriptionHtml,
                     'brandColor' => '#073b6f',
                 ]);
