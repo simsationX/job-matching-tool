@@ -30,7 +30,7 @@
 
         <form method="post" action="{{ path('candidate_match_mail_send', {id: candidate.id, matchId: match.id}) }}">
             <div class="form-group mb-3" style="width: 70%;>
-                <label for="mailText" class="form-label">Jobbeschreibung anpassen</label>
+                <label for="mailText" class="form-label">Mail anpassen</label>
                 <textarea id="mailText" name="mailText" rows="15" class="form-control">{{ initialMailHtml }}</textarea>
             </div>
 
