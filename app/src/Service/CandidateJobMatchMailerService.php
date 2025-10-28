@@ -33,7 +33,6 @@ final class CandidateJobMatchMailerService
         }
 
         $fromEmail = $candidate->getConsultant()?->getEmail() ?? 'info@bullheads.de';
-        $jobDescriptionHtml = nl2br(htmlspecialchars($mailText));
 
         $email = (new TemplatedEmail())
             ->from($fromEmail)
@@ -42,11 +41,8 @@ final class CandidateJobMatchMailerService
             ->htmlTemplate('emails/job_match.html.twig')
             ->textTemplate('emails/job_match.txt.twig')
             ->context([
-                'candidate' => $candidate,
-                'match' => $match,
-                'standardText' => 'Bitte prüfen Sie folgenden Job und geben Sie uns einen Hinweis, ob der Job für Sie interessant ist. Wir nehmen dann Kontakt zum Unternehmen auf.',
-                'jobDescriptionHtml' => $jobDescriptionHtml,
-                'jobDescription' => $mailText,
+                'mailText' => $mailText,
+                'plainText' => $this->htmlToPlaintext($mailText),
                 'brandColor' => '#073b6f',
             ]);
 
@@ -62,5 +58,15 @@ final class CandidateJobMatchMailerService
         }
 
         return $results;
+    }
+
+    private function htmlToPlaintext(string $html): string
+    {
+        $plainText = strip_tags($html);
+
+        $plainText = implode("\n", array_map('trim', explode("\n", $plainText)));
+        $plainText = preg_replace("/\n{3,}/", "\n\n", $plainText);
+
+        return $plainText;
     }
 }

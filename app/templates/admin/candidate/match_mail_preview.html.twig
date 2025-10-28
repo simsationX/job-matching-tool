@@ -1,5 +1,16 @@
 {% extends '@EasyAdmin/page/content.html.twig' %}
 
+{% set initialMailHtml %}
+    <p>Guten Tag {{ candidate.name }},</p>
+    <p>Bitte prüfen Sie folgenden Job und geben Sie uns einen Hinweis, ob der Job für Sie interessant ist. Wir nehmen dann Kontakt zum Unternehmen auf.</p>
+    <h2 style="color: #073b6f;">{{ match.position }} bei {{ match.company }}</h2>
+    <div style="line-height:1.5; margin:10px 0; font-style: italic">
+        {{ match.description|nl2br|raw }}
+    </div>
+    <p>Beste Grüße,</p>
+    <p>Ihr bullheads-Team</p>
+{% endset %}
+
 {% block content %}
     <div style="padding-top: 30px">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -18,9 +29,9 @@
         </div>
 
         <form method="post" action="{{ path('candidate_match_mail_send', {id: candidate.id, matchId: match.id}) }}">
-            <div class="form-group mb-3">
+            <div class="form-group mb-3" style="width: 70%;>
                 <label for="mailText" class="form-label">Jobbeschreibung anpassen</label>
-                <textarea id="mailText" name="mailText" rows="15" class="form-control">{{ match.description }}</textarea>
+                <textarea id="mailText" name="mailText" rows="15" class="form-control">{{ initialMailHtml }}</textarea>
             </div>
 
             <div class="d-flex justify-content-start gap-2 mb-3">
@@ -37,4 +48,48 @@
             </div>
         </form>
     </div>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/ui/trumbowyg.min.css">
+
+    {# --- jQuery (muss VOR Trumbowyg geladen werden) --- #}
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+
+    {# --- Trumbowyg JS --- #}
+    <script src="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/trumbowyg.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/trumbowyg@2.27.3/dist/langs/de.min.js"></script>
+
+    <script>
+        (function () {
+            // kurze safety checks im Client: Konsolenmeldungen helfen beim Debug
+            if (!window.jQuery) {
+                console.error('Trumbowyg: jQuery nicht geladen');
+                return;
+            }
+            if (!$.fn || !$.fn.trumbowyg) {
+                console.error('Trumbowyg: Plugin nicht verfügbar (prüfe CDN URLs)');
+                return;
+            }
+
+            try {
+                $('#mailText').trumbowyg({
+                    lang: 'de',
+                    btns: [
+                        ['viewHTML'],
+                        ['undo', 'redo'],
+                        ['formatting'],
+                        ['strong', 'em', 'del'],
+                        ['link'],
+                        ['justifyLeft', 'justifyCenter', 'justifyRight'],
+                        ['removeformat'],
+                    ],
+                    autogrow: true
+                });
+            } catch (e) {
+                console.error('Trumbowyg init error:', e);
+            }
+        })();
+    </script>
 {% endblock %}
+
+
+
