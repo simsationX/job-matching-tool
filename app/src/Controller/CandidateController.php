@@ -60,39 +60,45 @@ class CandidateController extends AbstractController
         return $this->redirect($url);
     }
 
-    #[Route('/admin/candidate/{id}/matches/action', name: 'candidate_matches_bulk_send', methods: ['POST'])]
-    public function bulkSendMatches(
+    #[Route('/admin/candidate/{id}/match/{matchId}/send', name: 'candidate_match_mail_send', methods: ['POST'])]
+    public function sendSingleMatch(
         int $id,
+        int $matchId,
         Request $request,
-        CandidateJobMatchMailerService $jobMatchMailer,
+        CandidateJobMatchMailerService $jobMatchMailer
     ): Response {
-        $matchIds = (array) $request->request->all('matches');
+        /** @var Candidate $candidate */
         $candidate = $this->candidateRepository->find($id);
-
         if (null === $candidate) {
             $this->addFlash('danger', 'Kandidat nicht gefunden.');
             return $this->redirectToRoute('admin_dashboard');
         }
 
-        if (empty($matchIds)) {
-            $this->addFlash('warning', 'Keine Matches ausgewählt.');
+        /** @var CandidateJobMatch $match */
+        $match = $this->candidateJobMatchRepository->find($matchId);
+        if (null === $match) {
+            $this->addFlash('danger', 'Match nicht gefunden.');
             return $this->redirectToRoute('candidate_detail', ['id' => $id]);
         }
 
-        $matches = $this->candidateJobMatchRepository->findBy(['id' => $matchIds]);
-        $results = $jobMatchMailer->sendMatches($candidate, $matches);
+        $mailText = $request->request->get('mailText');
 
-        if ($results['success'] > 0) {
-            $this->addFlash('success', "{$results['success']} Match(es) erfolgreich versendet.");
-        }
-        if ($results['alreadySent'] > 0) {
-            $this->addFlash('warning', "{$results['alreadySent']} Match(es) wurden bereits versendet und nicht erneut verschickt.");
-        }
-        if ($results['noEmail'] > 0) {
-            $this->addFlash('warning', "{$results['noEmail']} Match(es) konnten nicht gesendet werden, da keine E-Mail-Adresse hinterlegt ist.");
-        }
-        foreach ($results['errors'] as $error) {
-            $this->addFlash('danger', $error);
+        $results = $jobMatchMailer->sendMatch($candidate, $match, $mailText);
+
+        $this->addFlash(
+            $results['success'] ? 'success' : 'danger',
+            $results['success'] ? 'Mail erfolgreich versendet.' : $results['error']
+        );
+
+        if (false === $results['success']) {
+            $url = $this->adminUrlGenerator
+                ->setController(CandidateCrudController::class)
+                ->setAction('previewMail')
+                ->setEntityId($id)
+                ->set('matchId', $match->getId())
+                ->generateUrl();
+
+            return $this->redirect($url);
         }
 
         $url = $this->adminUrlGenerator

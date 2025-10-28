@@ -14,57 +14,52 @@ final class CandidateJobMatchMailerService
         private EntityManagerInterface $entityManager,
     ) {}
 
-    public function sendMatches(Candidate $candidate, array $matches): array
+    public function sendMatch(Candidate $candidate, CandidateJobMatch $match, string $mailText): array
     {
         $results = [
-            'success' => 0,
-            'alreadySent' => 0,
-            'noEmail' => 0,
-            'errors' => [],
+            'success' => false,
+            'error' => null,
         ];
 
         $candidateEmail = $candidate->getEmail();
-        if (!$candidateEmail) {
-            $results['noEmail'] = count($matches);
+        if (null === $candidateEmail) {
+            $results['error'] = 'Keine E-Mail-Adresse hinterlegt.';
             return $results;
         }
 
-        foreach ($matches as $match) {
-            /** @var CandidateJobMatch $match */
-            if ($match->getSentAt()) {
-                $results['alreadySent']++;
-                continue;
-            }
-
-            $fromEmail = $candidate->getConsultant()?->getEmail() ?? 'info@bullheads.de';
-            $jobDescription = $match->getDescription(); // Plaintext
-            $jobDescriptionHtml = nl2br(htmlspecialchars($jobDescription));
-
-            $email = (new TemplatedEmail())
-                ->from($fromEmail)
-                ->to($candidateEmail)
-                ->subject('Ihr neuer Job-Match von bullheads.de')
-                ->htmlTemplate('emails/job_match.html.twig')
-                ->textTemplate('emails/job_match.txt.twig')
-                ->context([
-                    'candidate' => $candidate,
-                    'match' => $match,
-                    'standardText' => 'Bitte prüfen Sie folgenden Job und geben Sie uns einen Hinweis, ob der Job für Sie interessant ist. Wir nehmen dann Kontakt zum Unternehmen auf.',
-                    'jobDescriptionHtml' => $jobDescriptionHtml,
-                    'brandColor' => '#073b6f',
-                ]);
-
-            try {
-                $this->mailer->send($email);
-                $match->setSentAt(new \DateTimeImmutable());
-                $this->entityManager->persist($match);
-                $results['success']++;
-            } catch (\Throwable $e) {
-                $results['errors'][] = sprintf('Match ID %d: %s', $match->getId(), $e->getMessage());
-            }
+        if (null !== $match->getSentAt()) {
+            $results['error'] = 'Diese Mail wurde bereits versendet.';
+            return $results;
         }
 
-        $this->entityManager->flush();
+        $fromEmail = $candidate->getConsultant()?->getEmail() ?? 'info@bullheads.de';
+        $jobDescriptionHtml = nl2br(htmlspecialchars($mailText));
+
+        $email = (new TemplatedEmail())
+            ->from($fromEmail)
+            ->to($candidateEmail)
+            ->subject('Ihr neuer Job-Match von bullheads.de')
+            ->htmlTemplate('emails/job_match.html.twig')
+            ->textTemplate('emails/job_match.txt.twig')
+            ->context([
+                'candidate' => $candidate,
+                'match' => $match,
+                'standardText' => 'Bitte prüfen Sie folgenden Job und geben Sie uns einen Hinweis, ob der Job für Sie interessant ist. Wir nehmen dann Kontakt zum Unternehmen auf.',
+                'jobDescriptionHtml' => $jobDescriptionHtml,
+                'jobDescription' => $mailText,
+                'brandColor' => '#073b6f',
+            ]);
+
+        try {
+            $this->mailer->send($email);
+            $match->setSentAt(new \DateTimeImmutable());
+            $this->entityManager->persist($match);
+            $this->entityManager->flush();
+
+            $results['success'] = true;
+        } catch (\Throwable $e) {
+            $results['error'] = $e->getMessage();
+        }
 
         return $results;
     }

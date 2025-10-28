@@ -3,7 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Candidate;
+use App\Entity\CandidateJobMatch;
+use App\Repository\CandidateJobMatchRepository;
 use App\Repository\CandidateRepository;
+use App\Service\CandidateJobMatchMailerService;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -17,12 +20,14 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class CandidateCrudController extends AbstractCrudController
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
         private CandidateRepository $candidateRepository,
+        private CandidateJobMatchRepository $candidateJobMatchRepository,
         private ParameterBagInterface $params,
     ) {
     }
@@ -52,6 +57,8 @@ class CandidateCrudController extends AbstractCrudController
         $matchCandidate = Action::new('matchCandidate', 'Match Kandidat', 'fa fa-handshake')
             ->linkToCrudAction('matchCandidate')
             ->setCssClass('action-matchCandidate');
+
+
 
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
@@ -245,5 +252,36 @@ class CandidateCrudController extends AbstractCrudController
         return $this->redirect(
             $adminUrlGenerator->setAction('detail')->setEntityId($candidate->getId())->generateUrl()
         );
+    }
+
+    public function previewMail(
+        AdminContext $context,
+    ): Response
+    {
+        $request = $context->getRequest();
+        $candidateId = $request->query->get('entityId');
+
+        /** @var Candidate $candidate */
+        $candidate = $this->candidateRepository->find($candidateId);
+
+        if (null === $candidate) {
+            $this->addFlash('danger', 'Kandidat nicht gefunden.');
+            return $this->redirect($request->headers->get('referer') ?? $this->generateUrl('easyadmin'));
+        }
+
+        $matchId = $request->query->getInt('matchId');
+
+        /** @var CandidateJobMatch $candidateJobMatch */
+        $candidateJobMatch = $this->candidateJobMatchRepository->find($matchId);
+
+        if (!$candidateJobMatch) {
+            $this->addFlash('danger', 'Match nicht gefunden.');
+            return $this->redirect($request->headers->get('referer') ?? $this->generateUrl('easyadmin'));
+        }
+
+        return $this->render('admin/candidate/match_mail_preview.html.twig', [
+            'candidate' => $candidate,
+            'match' => $candidateJobMatch,
+        ]);
     }
 }

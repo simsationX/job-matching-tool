@@ -40,7 +40,14 @@
                                 <i class="fa fa-envelope text-primary"></i>
                                 {{ match.sentAt|date('d.m.Y, H:i') }}
                             {% else %}
-                                <span class="text-muted">–</span>
+                                <a href="{{ ea_url()
+                                    .setController('App\\Controller\\CandidateCrudController')
+                                    .setAction('previewMail')
+                                    .setEntityId(ea.entity.instance.id)
+                                    .set('matchId', match.id)
+                                }}" class="btn btn-primary">
+                                    <i class="fa fa-envelope"></i> Mail vorbereiten
+                                </a>
                             {% endif %}
                         </td>
                     </tr>
@@ -56,12 +63,6 @@
                data-bs-toggle="modal" data-bs-target="#modal-bulk-delete">
                 <span class="icon btn-icon"><i class="fa fa-trash"></i></span>
                 <span class="btn-label"><span class="action-label">Ausgewählte Matches löschen</span></span>
-            </a>
-
-            <a class="btn btn-primary btn-invisible action-send" href="#" role="button"
-               data-bs-toggle="modal" data-bs-target="#modal-bulk-send">
-                <span class="icon btn-icon"><i class="fa fa-paper-plane"></i></span>
-                <span class="btn-label"><span class="action-label">Ausgewählte Matches senden</span></span>
             </a>
         </div>
     </form>
@@ -86,22 +87,6 @@
     </div>
 </div>
 
-{# Modal für senden #}
-<div class="modal fade" id="modal-bulk-send" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Matches wirklich senden?</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">Pro ausgewähltem Match wird eine E-Mail an den Kandidaten gesendet.</div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                <button type="button" class="btn btn-primary" onclick="submitBulkForm('{{ path('candidate_matches_bulk_send', {id: ea.entity.instance.id}) }}')">Senden</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 {% block javascripts %}
 <script>
