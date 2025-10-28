@@ -8,7 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
-class MatchReportMailerService
+final class MatchReportMailerService
 {
     private const CANDIDATE_JOB_MATCH_URL = "https://job-matching.bullheads.de/candidate-job-match";
 

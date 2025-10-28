@@ -28,6 +28,7 @@ class MatchReportController extends AbstractController
             fputcsv($out, [
                 'candidate_id',
                 'candidate_name',
+                'candidate_email',
                 'candidate_location',
                 'candidate_additional_locations',
                 'job_company',
@@ -35,12 +36,14 @@ class MatchReportController extends AbstractController
                 'job_description',
                 'job_location',
                 'score',
-                'found_at'
+                'found_at',
+                'sent_at'
             ]);
 
             foreach ($matches as $row) {
                 $row['score'] = number_format((float)$row['score'], 2, '.', '');
                 $row['found_at'] = $row['found_at'] ? $row['found_at']->format('Y-m-d H:i:s') : '';
+                $row['sent_at'] = $row['sent_at'] ? $row['sent_at']->format('Y-m-d H:i:s') : '';
                 fputcsv($out, $row);
             }
 

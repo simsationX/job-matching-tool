@@ -6,9 +6,8 @@ use App\Entity\Job;
 use App\Entity\JobImportError;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use Symfony\Component\Security\Http\LoginLink\Exception\ExpiredLoginLinkException;
 
-class JobImportService
+final class JobImportService
 {
     public function __construct(
         private EntityManagerInterface $em,

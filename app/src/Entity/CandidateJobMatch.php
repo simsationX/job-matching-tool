@@ -61,6 +61,9 @@ class CandidateJobMatch
     #[ORM\Column(type: 'boolean')]
     private bool $exported = false;
 
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $sentAt = null;
+
     #[ORM\Column(type: 'string', length: 10, enumType: CandidateJobMatchStatus::class)]
     private CandidateJobMatchStatus $status = CandidateJobMatchStatus::ACTIVE;
 
@@ -266,6 +269,17 @@ class CandidateJobMatch
     public function setExported(bool $exported): self
     {
         $this->exported = $exported;
+        return $this;
+    }
+
+    public function getSentAt(): ?\DateTimeInterface
+    {
+        return $this->sentAt;
+    }
+
+    public function setSentAt(?\DateTimeInterface $sentAt): self
+    {
+        $this->sentAt = $sentAt;
         return $this;
     }
 }

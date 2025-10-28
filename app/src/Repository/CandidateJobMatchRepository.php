@@ -21,6 +21,7 @@ class CandidateJobMatchRepository extends ServiceEntityRepository
                 'cjm.id AS id,
              c.id AS candidate_id,
              c.name AS candidate_name,
+             c.email AS candidate_email,
              c.location AS candidate_location,
              c.additionalLocations AS candidate_additional_locations,
              consultant.name AS candidate_consultant,
@@ -30,7 +31,8 @@ class CandidateJobMatchRepository extends ServiceEntityRepository
              cjm.description AS job_description,
              cjm.location AS job_location,
              cjm.score AS score,
-             cjm.foundAt AS found_at'
+             cjm.foundAt AS found_at,
+             cjm.sent_at AS sent_at'
             )
             ->join('cjm.candidate', 'c')
             ->leftJoin('c.consultant', 'consultant')

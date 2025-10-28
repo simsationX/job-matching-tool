@@ -4,7 +4,7 @@ namespace App\Service;
 
 use App\Entity\Candidate;
 
-class CandidateKeywordService
+final class CandidateKeywordService
 {
     private const CANDIDATE_FIELDS = ['position', 'industry', 'skills', 'additionalActivityAreas'];
 

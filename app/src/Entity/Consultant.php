@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Traits\Timestampable;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -17,6 +18,13 @@ class Consultant
     #[ORM\Column(type: 'string')]
     private string $name;
 
+    #[Assert\Email(
+        message: 'Die E-Mail-Adresse "{{ value }}" ist ungültig.'
+    )]
+    #[Assert\Length(
+        max: 180,
+        maxMessage: 'Die E-Mail-Adresse darf maximal {{ limit }} Zeichen lang sein.'
+    )]
     #[ORM\Column(type: 'string')]
     private string $email;
 

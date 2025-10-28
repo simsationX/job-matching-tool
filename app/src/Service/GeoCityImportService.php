@@ -5,7 +5,7 @@ use App\Entity\GeoCity;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
-class GeoCityImportService
+final class GeoCityImportService
 {
     public function __construct(private EntityManagerInterface $em) {}
 

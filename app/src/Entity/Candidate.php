@@ -8,6 +8,7 @@ use App\Entity\Traits\Timestampable;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 #[ORM\HasLifecycleCallbacks]
@@ -20,6 +21,16 @@ class Candidate
 
     #[ORM\Column(type: 'string')]
     private string $name;
+
+    #[Assert\Email(
+        message: 'Die E-Mail-Adresse "{{ value }}" ist ungültig.'
+    )]
+    #[Assert\Length(
+        max: 180,
+        maxMessage: 'Die E-Mail-Adresse darf maximal {{ limit }} Zeichen lang sein.'
+    )]
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $email = null;
 
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $position = null;
@@ -74,6 +85,17 @@ class Candidate
     public function setName(string $name): self
     {
         $this->name = $name;
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(?string $email): self
+    {
+        $this->email = $email;
         return $this;
     }
 

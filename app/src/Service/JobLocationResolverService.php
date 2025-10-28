@@ -5,7 +5,7 @@ namespace App\Service;
 use App\Entity\GeoCity;
 use App\Repository\GeoCityRepository;
 
-class JobLocationResolverService
+final class JobLocationResolverService
 {
     private const IGNORED_LOCATIONS = [
         'deutschland',

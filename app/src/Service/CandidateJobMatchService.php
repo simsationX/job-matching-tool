@@ -13,7 +13,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Process\Process;
 
 #[AllowDynamicProperties]
-class CandidateJobMatchService
+final class CandidateJobMatchService
 {
     public function __construct(
         private readonly CandidateJobMatchRepository $candidateJobMatchRepository,

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Ihr neuer Job-Match</title>
+    <style>
+        /* Mobil-Optimierung */
+        @media only screen and (max-width: 620px) {
+            .main-table {
+                width: 100% !important;
+            }
+            .content-padding {
+                padding: 15px !important;
+            }
+            .logo img {
+                max-width: 150px !important;
+                height: auto !important;
+            }
+        }
+    </style>
+</head>
+<body style="font-family: Arial, sans-serif; background-color:#f5f5f5; color:#333; margin:0; padding:0;">
+<table style="width: 100%; background-color:#f5f5f5; padding:20px 0;" cellpadding="0" cellspacing="0">
+    <tr>
+        <td align="center">
+            <table class="main-table" style="width: 800px; background-color:#fff; border-radius:8px; overflow:hidden;" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="logo" style="background-color:{{ brandColor }}; text-align:center; padding:20px;">
+                        <img src="{{ absolute_url('/images/logo-bullheads.png') }}" alt="bullheads Logo" style="max-width:200px; height:auto;">
+                    </td>
+                </tr>
+                <tr>
+                    <td class="content-padding" style="padding:20px;">
+                        <p>Guten Tag {{ candidate.name }},</p>
+                        <p>{{ standardText }}</p>
+                        <h2 style="color: {{ brandColor }};">{{ match.position }} bei {{ match.company }}</h2>
+                        <div style="line-height:1.5; margin:10px 0;">
+                            {{ jobDescriptionHtml|raw }}
+                        </div>
+                        <p>Beste Grüße,</p>
+                        <p>Ihr bullheads-Team</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-size:14px; color:#999; text-align:center; padding:20px;">
+                        <hr style="border:0; border-top:1px solid #ccc; margin:10px 0;">
+                        <a href="https://bullheads.de" style="color: {{ brandColor }};">https://www.bullheads.de</a>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

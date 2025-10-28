@@ -1,31 +1,114 @@
-{% if field.value|length %}
-    <form method="post" action="{{ path('candidate_matches_bulk_ignore', { id: ea.entity.instance.id }) }}">
-        <ul class="candidate-job-matches-list">
-            {% for match in field.value %}
+{% set hasActiveMatches = field.value|filter(match => match.status.value == 'active')|length > 0 %}
+
+{% if hasActiveMatches %}
+    <form method="post" class="candidate-matches-form">
+        <table class="table table-sm table-hover align-top">
+            <thead>
+            <tr>
+                <th style="width: 30px;"></th>
+                <th style="width: 60px;">Score</th>
+                <th style="width: 140px;">Gematcht am</th>
+                <th>Firma</th>
+                <th>Position</th>
+                <th>Ort</th>
+                <th style="width: 160px;">Gesendet am</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for match in field.value|sort((a, b) => b.foundAt <=> a.foundAt) %}
                 {% if match.status.value == "active" %}
-                    <li>
-                        <label>
-                            <input type="checkbox" name="matches[]" value="{{ match.id }}">
+                    <tr {% if match.sentAt %}style="opacity: 0.6;" title="Bereits am {{ match.sentAt|date('d.m.Y H:i') }} versendet"{% endif %}>
+                        <td>
+                            <input type="checkbox" name="matches[]" value="{{ match.id }}"
+                                   {% if match.sentAt %}data-sent="1"{% endif %}>
+                        </td>
+                        <td>{{ match.score|number_format(2, '.', '') }}</td>
+                        <td>{{ match.foundAt|date('d.m.Y, H:i') }}</td>
+                        <td>{{ match.company }}</td>
+                        <td>
                             <a href="{{ ea_url()
                                 .setController('App\\Controller\\CandidateJobMatchCrudController')
                                 .setAction('detail')
                                 .setEntityId(match.id)
                             }}">
-                                {{ match.company }} – {{ match.position }} – {{ match.location }} –
-                                {{ match.score|number_format(2, '.', '') }} –
-                                {{ match.foundAt|date('d.m.Y, H:i') }}
+                                {{ match.position }}
                             </a>
-                        </label>
-                    </li>
+                        </td>
+                        <td>{{ match.location }}</td>
+                        <td>
+                            {% if match.sentAt %}
+                                <i class="fa fa-envelope text-primary"></i>
+                                {{ match.sentAt|date('d.m.Y, H:i') }}
+                            {% else %}
+                                <span class="text-muted">–</span>
+                            {% endif %}
+                        </td>
+                    </tr>
                 {% endif %}
             {% endfor %}
-        </ul>
+            </tbody>
+        </table>
 
-        <input type="hidden" name="_token" value="{{ csrf_token('bulk_delete_matches') }}">
-        <button type="submit" class="candidate-job-matches-delete btn btn-danger btn-sm">
-            <i class="fa fa-trash"></i> Ausgewählte Matches löschen
-        </button>
+        <input type="hidden" name="_token" value="{{ csrf_token('bulk_matches_action') }}">
+
+        <div class="mt-2 d-flex gap-2">
+            <a class="btn btn-danger btn-invisible action-delete" href="#" role="button"
+               data-bs-toggle="modal" data-bs-target="#modal-bulk-delete">
+                <span class="icon btn-icon"><i class="fa fa-trash"></i></span>
+                <span class="btn-label"><span class="action-label">Ausgewählte Matches löschen</span></span>
+            </a>
+
+            <a class="btn btn-primary btn-invisible action-send" href="#" role="button"
+               data-bs-toggle="modal" data-bs-target="#modal-bulk-send">
+                <span class="icon btn-icon"><i class="fa fa-paper-plane"></i></span>
+                <span class="btn-label"><span class="action-label">Ausgewählte Matches senden</span></span>
+            </a>
+        </div>
     </form>
 {% else %}
     <span>Keine Matches</span>
 {% endif %}
+
+{# Modal für löschen #}
+<div class="modal fade" id="modal-bulk-delete" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Matches wirklich löschen?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">Diese Aktion kann nicht rückgängig gemacht werden.</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-danger" onclick="submitBulkForm('{{ path('candidate_matches_bulk_delete', {id: ea.entity.instance.id}) }}')">Löschen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Modal für senden #}
+<div class="modal fade" id="modal-bulk-send" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Matches wirklich senden?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">Pro ausgewähltem Match wird eine E-Mail an den Kandidaten gesendet.</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" onclick="submitBulkForm('{{ path('candidate_matches_bulk_send', {id: ea.entity.instance.id}) }}')">Senden</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block javascripts %}
+<script>
+    function submitBulkForm(actionUrl) {
+        const form = document.querySelector('.candidate-matches-form');
+        form.action = actionUrl;
+        form.submit();
+    }
+</script>
+{% endblock %}

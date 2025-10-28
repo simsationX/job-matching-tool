@@ -3,8 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Candidate;
-use App\Entity\CandidateJobMatch;
-use App\Entity\Enum\CandidateJobMatchStatus;
 use App\Repository\CandidateRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -19,8 +17,6 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
 
 class CandidateCrudController extends AbstractCrudController
 {
@@ -85,6 +81,7 @@ class CandidateCrudController extends AbstractCrudController
         if ($pageName === Crud::PAGE_DETAIL) {
             $fields = [
                 TextField::new('name'),
+                TextField::new('email'),
                 TextField::new('position', 'Position'),
                 TextField::new('industry', 'Branche'),
                 TextField::new('additionalIndustriesText', 'Weitere Branchen'),
@@ -96,13 +93,14 @@ class CandidateCrudController extends AbstractCrudController
                 TextField::new('consultant', 'Berater'),
                 AssociationField::new('matches')
                     ->setCrudController(CandidateJobMatchCrudController::class)
-                    ->setTemplatePath('admin/fields/candidate_matches.html.twig'),
+                    ->setTemplatePath('admin/fields/candidate_matches.html.twig')
             ];
         }
 
         if ($pageName === CRUD::PAGE_EDIT || $pageName === CRUD::PAGE_NEW) {
             $fields = [
                 TextField::new('name'),
+                TextField::new('email'),
                 TextField::new('position', 'Position (durch Kommas getrennt)'),
                 TextField::new('industry', 'Branche (durch Kommas getrennt)'),
                 AssociationField::new('additionalIndustries', 'Weitere Branchen')
@@ -138,7 +136,7 @@ class CandidateCrudController extends AbstractCrudController
         }
 
         $errors = [];
-        $rows = array_map(fn($line) => str_getcsv($line, ';'), file($file->getPathname()));
+        $rows = array_map(static fn($line) => str_getcsv($line, ';'), file($file->getPathname()));
         array_shift($rows);
 
         foreach ($rows as $i => $row) {
@@ -151,9 +149,10 @@ class CandidateCrudController extends AbstractCrudController
             try {
                 $candidate = new Candidate();
                 $candidate->setName($name);
-                $candidate->setPosition($row[3] ?? '');
-                $candidate->setIndustry($row[2] ?? '');
-                $candidate->setLocation($row[1] ?? '');
+                $candidate->setEmail($row[1] ?? '');
+                $candidate->setPosition($row[4] ?? '');
+                $candidate->setIndustry($row[3] ?? '');
+                $candidate->setLocation($row[2] ?? '');
                 $this->entityManager->persist($candidate);
             } catch (\Exception $e) {
                 $errors[] = ['line' => $i + 1, 'error' => $e->getMessage()];
@@ -164,7 +163,7 @@ class CandidateCrudController extends AbstractCrudController
 
         if (!empty($errors)) {
             $errorDetails = array_map(
-                fn($err) => sprintf('Zeile %d: %s', $err['line'], $err['error']),
+                static fn($err) => sprintf('Zeile %d: %s', $err['line'], $err['error']),
                 $errors
             );
 
