@@ -37,6 +37,7 @@ final class CandidateJobMatchMailerService
         $email = (new TemplatedEmail())
             ->from($fromEmail)
             ->to($candidateEmail)
+            ->bcc($fromEmail)
             ->subject('Ihr neuer Job-Match von bullheads.de')
             ->htmlTemplate('emails/job_match.html.twig')
             ->textTemplate('emails/job_match.txt.twig')
