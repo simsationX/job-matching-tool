@@ -1,4 +1,4 @@
-# Symfony 7 Job-Matching MVP - Docker Setup
+# Symfony 7 Job-Matching MVP
 
 This project is a Symfony 7 MVP for job matching, with a Docker setup including PHP-FPM, MySQL, Nginx, and Mailhog.
 
